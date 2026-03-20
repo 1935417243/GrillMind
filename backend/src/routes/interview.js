@@ -162,6 +162,10 @@ export default async function interviewRoutes(fastify) {
     const aiMessages     = engine.buildAIMessages(content);
     const interviewModel = getTaskModel('interview');
 
+    // 百炼（Qwen3 系列）默认开启深度思考，面试对话需关闭以缩短响应时间
+    const isBailian = interviewModel.startsWith('bailian::');
+    const extraBody = isBailian ? { enable_thinking: false } : {};
+
     // 设置 SSE 响应头
     reply.raw.writeHead(200, {
       'Content-Type':  'text/event-stream',
@@ -174,6 +178,7 @@ export default async function interviewRoutes(fastify) {
         providerModel: interviewModel,
         messages:      aiMessages,
         stream:        true,
+        extraBody,
       });
 
       let fullContent = '';

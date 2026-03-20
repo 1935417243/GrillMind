@@ -42,10 +42,72 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   z-index: 100;
   overflow: hidden;
-  max-height: 280px;
-  overflow-y: auto;
+  max-height: 320px;
+  display: none;
+  flex-direction: column;
 }
-.model-dropdown.open .model-dropdown-menu { display: block; }
+.model-dropdown.open .model-dropdown-menu { display: flex; }
+
+/* 搜索框 - 固定在顶部 */
+.model-dd-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.model-dd-search-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.model-dd-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-primary);
+  padding: 0;
+  min-width: 0;
+}
+.model-dd-search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+.model-dd-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  border-radius: 50%;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.model-dd-search-clear:hover {
+  color: var(--text-primary);
+  background: var(--accent-light);
+}
+
+/* 模型列表 - 可滚动 */
+.model-dd-list {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
 
 .model-dd-group-label {
   padding: 7px 12px 4px;
@@ -86,4 +148,14 @@
   opacity: 0.35;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* 空结果提示 */
+.model-dd-empty {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.7;
 }

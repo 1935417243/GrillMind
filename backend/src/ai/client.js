@@ -62,13 +62,14 @@ export function getTaskModel(task) {
  * @param {string} options.providerModel - 'provider::model'
  * @param {Array} options.messages - 消息数组
  * @param {boolean} [options.stream=false] - 是否流式
+ * @param {object} [options.extraBody={}] - 透传给供应商的扩展参数（如百炼的 enable_thinking）
  * @returns {Promise}
  */
-export async function chatCompletion({ providerModel, messages, stream = false }) {
+export async function chatCompletion({ providerModel, messages, stream = false, extraBody = {} }) {
   const client = getAIClient(providerModel);
   const model  = getModelName(providerModel);
 
-  return client.chat.completions.create({ model, messages, stream });
+  return client.chat.completions.create({ model, messages, stream, ...extraBody });
 }
 
 /**
