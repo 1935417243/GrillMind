@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { modelApi } from '../api/client';
 import { useAppDispatch } from '../store/AppContext';
+import { useToast } from '../components/Toast';
 import ModelDropdown from '../components/ModelDropdown';
 import './ModelSettings.css';
 
 export default function ModelSettings() {
   const dispatch = useAppDispatch();
+  const toast = useToast();
 
   // 供应商配置
   const [providers, setProviders] = useState([]);
@@ -62,7 +64,7 @@ export default function ModelSettings() {
   const handleTest = async (name) => {
     const form = providerForms[name];
     if (!form.apiKey && !getProviderHasKey(name)) {
-      alert('请先输入 API Key');
+      toast.error('请先输入 API Key');
       return;
     }
     // 脱敏占位符或空值时不传 apiKey，后端会用已保存的
@@ -85,10 +87,10 @@ export default function ModelSettings() {
     const apiKey = isMaskedKey(form.apiKey) ? undefined : (form.apiKey || undefined);
     try {
       await modelApi.saveProvider(name, { apiKey, baseUrl: form.baseUrl });
-      alert('保存成功');
+      toast.success('保存成功');
       await loadProviders();
     } catch (err) {
-      alert('保存失败：' + err.message);
+      toast.error('保存失败：' + err.message);
     }
   };
 
@@ -96,9 +98,9 @@ export default function ModelSettings() {
     try {
       await modelApi.updateBinding(binding);
       dispatch({ type: 'SET_MODEL_BINDING', payload: binding });
-      alert('绑定已保存');
+      toast.success('绑定已保存');
     } catch (err) {
-      alert('保存绑定失败：' + err.message);
+      toast.error('保存绑定失败：' + err.message);
     }
   };
 

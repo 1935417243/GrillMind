@@ -1,0 +1,116 @@
+/* ── Toast 通知组件样式 ── */
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 380px;
+  min-width: 240px;
+}
+
+.toast.toast-exit {
+  animation: toastSlideOut 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* ── 类型变体 ── */
+.toast-success {
+  border-left: 3px solid var(--accent);
+}
+.toast-success .toast-icon {
+  color: var(--accent);
+}
+
+.toast-error {
+  border-left: 3px solid var(--warn);
+}
+.toast-error .toast-icon {
+  color: var(--warn);
+}
+
+.toast-info {
+  border-left: 3px solid var(--text-muted);
+}
+.toast-info .toast-icon {
+  color: var(--text-secondary);
+}
+
+/* ── 子元素 ── */
+.toast-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.15s, background 0.15s;
+}
+.toast-close:hover {
+  color: var(--text-primary);
+  background: var(--bg);
+}
+
+/* ── 动画 ── */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px) scale(0.96);
+  }
+}
