@@ -1,0 +1,49 @@
+/* 聊天气泡样式 */
+.msg {
+  display: flex;
+  gap: 12px;
+  max-width: 640px;
+  animation: fadeUp 0.25s ease forwards;
+}
+.msg.user { flex-direction: row-reverse; align-self: flex-end; }
+.msg-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.msg.ai .msg-avatar { background: var(--accent-light); color: var(--accent); }
+.msg.user .msg-avatar { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+.msg-bubble {
+  padding: 12px 15px;
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.msg.ai .msg-bubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.msg.user .msg-bubble {
+  background: var(--accent);
+  color: #fff;
+}
+.msg-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  font-family: 'DM Mono', monospace;
+}
+.msg.user .msg-label { text-align: right; }
+
+.streaming-cursor {
+  animation: blink 0.8s step-end infinite;
+  color: var(--accent);
+  font-weight: 500;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}

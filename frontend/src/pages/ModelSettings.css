@@ -1,0 +1,54 @@
+/* 模型设置页面样式 */
+.provider-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 12px;
+}
+.provider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.provider-name { font-size: 14px; font-weight: 500; }
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.status-dot.ok { background: var(--accent); }
+.status-dot.saved { background: #d4a843; }
+.status-dot.off { background: var(--text-muted); }
+
+.binding-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  gap: 16px;
+}
+.binding-row:last-child { border-bottom: none; }
+.binding-label {
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.binding-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.test-hint {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  transition: color 0.2s;
+}

@@ -1,0 +1,115 @@
+/* 简历解析抽屉样式 */
+
+/* ── 遮罩层 ── */
+.drawer-mask {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 25, 23, 0.25);
+  z-index: 200;
+  animation: drawerFadeIn 0.2s ease;
+}
+.drawer-mask.open { display: block; }
+@keyframes drawerFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── 抽屉面板 ── */
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 420px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
+}
+.drawer.open { transform: translateX(0); }
+
+/* ── 头部 ── */
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.drawer-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.drawer-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: 'DM Mono', monospace; }
+.drawer-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 14px; padding: 2px 4px;
+  line-height: 1;
+}
+.drawer-close:hover { color: var(--text-primary); }
+
+/* ── 内容区 ── */
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+/* ── 解析分区 ── */
+.parse-section { margin-bottom: 24px; }
+.parse-section-title {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── 键值对 ── */
+.parse-kv {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  align-items: flex-start;
+}
+.parse-kv:last-child { border-bottom: none; }
+.parse-k { color: var(--text-muted); flex-shrink: 0; width: 72px; padding-top: 1px; font-size: 12px; }
+.parse-v { color: var(--text-primary); flex: 1; line-height: 1.6; }
+
+/* ── 项目卡片 ── */
+.project-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--bg);
+}
+.project-name { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.project-role { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+.project-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px; }
+
+/* ── 深挖点 / 模糊点 ── */
+.dig-points { display: flex; flex-direction: column; gap: 4px; }
+.dig-point {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  line-height: 1.5;
+}
+.dig-point.warn { background: var(--warn-light); color: var(--warn); }
+.dig-point.tip  { background: var(--accent-light); color: var(--accent); }
+
+/* ── 自我介绍提示区 ── */
+.intro-hints { display: flex; flex-direction: column; gap: 4px; }
+.intro-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.6;
+}
+.intro-hint:last-child { border-bottom: none; }

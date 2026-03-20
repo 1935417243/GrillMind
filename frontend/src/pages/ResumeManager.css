@@ -1,0 +1,19 @@
+/* 简历管理页面样式 */
+.resume-list { display: flex; flex-direction: column; gap: 12px; }
+
+.upload-zone {
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 16px;
+}
+.upload-zone:hover {
+  border-color: var(--accent-dim);
+  color: var(--accent);
+  background: var(--accent-light);
+}

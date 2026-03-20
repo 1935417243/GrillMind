@@ -1,0 +1,17 @@
+{
+  "name": "grillmind",
+  "version": "0.1.0",
+  "private": true,
+  "description": "智面 · AI 技术面试模拟器",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && node --watch src/index.js",
+    "dev:frontend": "cd frontend && npx vite",
+    "build": "cd frontend && npx vite build --outDir ../backend/public",
+    "start": "cd backend && node src/index.js",
+    "db:init": "cd backend && node src/db/init.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+}

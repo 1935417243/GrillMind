@@ -1,0 +1,62 @@
+/* 简历卡片样式 */
+.resume-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  gap: 16px;
+}
+.resume-card:hover { border-color: var(--border-strong); }
+.resume-card.current { border-color: var(--accent); }
+.resume-info-row { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.resume-icon {
+  width: 36px; height: 36px;
+  background: var(--accent-light);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.resume-icon.inactive {
+  background: var(--bg);
+  color: var(--text-muted);
+}
+.resume-title { font-size: 13px; font-weight: 500; }
+.resume-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* 解析中状态标签 */
+.tag-processing {
+  background: #eef4ff;
+  color: #4a6fa5;
+  border: 1px solid #c8d8ef;
+}
+
+/* 解析中旋转动画 */
+.parse-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid #c8d8ef;
+  border-top-color: #4a6fa5;
+  border-radius: 50%;
+  animation: parseSpin 0.8s linear infinite;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+@keyframes parseSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* +N 折叠标签 */
+.skill-chip-more {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent-light);
+  font-weight: 500;
+}

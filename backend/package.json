@@ -1,0 +1,23 @@
+{
+  "name": "grillmind-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "智面后端 - Fastify + SQLite",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "fastify": "^4.28.0",
+    "@fastify/multipart": "^8.3.0",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/static": "^7.0.0",
+    "better-sqlite3": "^11.0.0",
+    "openai": "^4.52.0",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.8.0",
+    "uuid": "^9.0.1"
+  }
+}

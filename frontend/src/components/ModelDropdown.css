@@ -1,0 +1,89 @@
+/* 模型下拉选择器样式 */
+.model-dropdown {
+  position: relative;
+  min-width: 200px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.model-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-primary);
+}
+.model-dropdown-trigger:hover,
+.model-dropdown.open .model-dropdown-trigger {
+  border-color: var(--accent-dim);
+}
+.model-dropdown-arrow {
+  width: 10px; height: 10px; flex-shrink: 0; opacity: 0.5;
+  transition: transform 0.15s;
+}
+.model-dropdown.open .model-dropdown-arrow { transform: rotate(180deg); }
+
+.model-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  z-index: 100;
+  overflow: hidden;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.model-dropdown.open .model-dropdown-menu { display: block; }
+
+.model-dd-group-label {
+  padding: 7px 12px 4px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.model-dd-group-label.disabled { opacity: 0.5; }
+
+.model-dd-option {
+  padding: 8px 12px 8px 20px;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.1s;
+  border-bottom: 1px solid var(--border);
+}
+.model-dd-option:last-child { border-bottom: none; }
+.model-dd-option:hover { background: var(--accent-light); color: var(--text-primary); }
+.model-dd-option.selected { color: var(--accent); }
+.model-dd-option.selected::after {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.model-dd-option.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
