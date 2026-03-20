@@ -106,6 +106,7 @@ export class InterviewEngine {
       jobType:        this.session.job_type,
       parsed:         this.parsed,
       difficulty:     this.session.difficulty,
+      focus:          this.session.focus,
       stage:          this.stage,
       currentProject: this.getCurrentProject(),
     });

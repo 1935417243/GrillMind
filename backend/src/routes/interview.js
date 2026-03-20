@@ -33,12 +33,22 @@ export default async function interviewRoutes(fastify) {
 
     const id = uuidv4();
 
-    // 根据深度生成开场白
+    // 根据深度和侧重点动态生成开场白
     const depthValue = depth || 'standard';
+    const focusValue = focus || 'mixed';
+
+    // 侧重点描述
+    const focusDesc = {
+      mixed:   '技术背景和项目经历',
+      project: '项目经历和架构设计',
+      basic:   '技术基础和核心原理',
+    }[focusValue] || '技术背景和项目经历';
+
+    // 深度模板
     const openingTexts = {
-      quick:    '你好，我是今天的面试官。我们做一次简短的技术交流，主要围绕你的项目经历来展开。准备好了的话，先请你做一个简单的自我介绍吧。',
-      standard: '你好，我是今天的面试官。我们这场面试会围绕你的技术背景和项目经历来展开。准备好了的话，先请你做一个简单的自我介绍吧。',
-      deep:     '你好，我是今天的面试官。我们今天会比较深入地聊一聊你的技术背景、项目经历以及基础能力。准备好了的话，先请你做一个简单的自我介绍吧。',
+      quick:    `你好，我是今天的面试官。我们做一次简短的技术交流，主要围绕你的${focusDesc}来展开。准备好了的话，先请你做一个简单的自我介绍吧。`,
+      standard: `你好，我是今天的面试官。我们这场面试会围绕你的${focusDesc}来展开。准备好了的话，先请你做一个简单的自我介绍吧。`,
+      deep:     `你好，我是今天的面试官。我们今天会比较深入地聊一聊你的${focusDesc}。准备好了的话，先请你做一个简单的自我介绍吧。`,
     };
     const openingMessage = {
       role: 'assistant',
