@@ -66,8 +66,8 @@ export async function parseResumeAsync(resumeId, filePath, originalName) {
     // 安全解析 JSON
     const parsed = safeParseAIJson(aiResult);
 
-    // 推断岗位类型
-    const jobType = parsed.jobTendency === 'test' ? 'test' : 'backend';
+    // 岗位类型直接取 AI 解析结果，后续扩展新岗位无需改动
+    const jobType = parsed.jobTendency || 'mixed';
 
     // 写入数据库
     db.prepare(`
