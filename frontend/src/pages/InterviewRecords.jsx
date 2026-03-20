@@ -18,6 +18,7 @@ export default function InterviewRecords() {
   }, []);
 
   const difficultyMap = { normal: '普通', pressure: '有压力', high: '高压' };
+  const depthMap = { quick: '快速', standard: '标准', deep: '深度' };
 
   // 确认删除
   const handleDelete = async () => {
@@ -66,7 +67,7 @@ export default function InterviewRecords() {
                   {record.resumeName ? ` · ${record.resumeName}` : ''}
                 </div>
                 <div className="record-sub">
-                  {record.duration} 分钟 · {record.turnsCount} 轮追问 · {difficultyMap[record.difficulty] || record.difficulty}
+                  {depthMap[record.depth] || (typeof record.depth === 'number' ? `${record.depth}分钟` : record.depth)} · {record.turnsCount} 轮追问 · {difficultyMap[record.difficulty] || record.difficulty}
                   {record.status === 'in_progress' && ' · 进行中'}
                 </div>
               </div>

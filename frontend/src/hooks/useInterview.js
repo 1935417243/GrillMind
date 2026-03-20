@@ -10,9 +10,10 @@ export function useInterview(sessionId) {
   const [stage,            setStage]            = useState('opening');
   const [isStreaming,      setIsStreaming]      = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [isClosing,        setIsClosing]        = useState(false);
 
   const sendMessage = useCallback(async (content) => {
-    if (isStreaming || !sessionId) return;
+    if (isStreaming || isClosing || !sessionId) return;
 
     // 追加用户消息
     setMessages(prev => [...prev, { role: 'user', content, timestamp: Date.now() }]);
@@ -50,7 +51,11 @@ export function useInterview(sessionId) {
                 { role: 'assistant', content: fullContent, timestamp: Date.now() }
               ]);
               setStreamingContent('');
-              if (data.stage) setStage(data.stage);
+              if (data.stage) {
+                setStage(data.stage);
+                // 进入 closing 阶段后标记，阻止继续发消息
+                if (data.stage === 'closing') setIsClosing(true);
+              }
             }
             if (data.error) {
               console.error('AI 调用错误:', data.message);
@@ -63,13 +68,16 @@ export function useInterview(sessionId) {
     } finally {
       setIsStreaming(false);
     }
-  }, [sessionId, isStreaming]);
+  }, [sessionId, isStreaming, isClosing]);
 
   // 加载已有消息（恢复会话用）
   const loadMessages = useCallback((msgs, currentStage) => {
     setMessages(msgs || []);
-    if (currentStage) setStage(currentStage);
+    if (currentStage) {
+      setStage(currentStage);
+      if (currentStage === 'closing') setIsClosing(true);
+    }
   }, []);
 
-  return { messages, stage, isStreaming, streamingContent, sendMessage, loadMessages };
+  return { messages, stage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages };
 }

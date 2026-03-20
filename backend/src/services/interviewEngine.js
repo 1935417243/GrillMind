@@ -4,15 +4,40 @@ import { db } from '../db/index.js';
 import { buildInterviewSystemPrompt } from '../ai/prompts/interviewChat.js';
 import { nowCST } from '../utils/time.js';
 
-// 阶段流转配置
-const STAGE_FLOW = {
-  opening:        { minTurns: 1, next: 'intro' },
-  intro:          { minTurns: 1, next: 'intro_followup' },
-  intro_followup: { minTurns: 1, maxTurns: 2, next: 'project_dive' },
-  project_dive:   { minTurns: 2, maxTurns: 4, next: 'basic_verify' },
-  basic_verify:   { minTurns: 2, maxTurns: 3, next: 'closing' },
-  closing:        { minTurns: 1, next: null },
-};
+/**
+ * 根据面试深度生成阶段流转配置
+ * @param {'quick' | 'standard' | 'deep'} depth
+ * @returns {object}
+ */
+function getStageFlow(depth) {
+  const flows = {
+    quick: {
+      opening:        { minTurns: 1, next: 'intro' },
+      intro:          { minTurns: 1, next: 'intro_followup' },
+      intro_followup: { minTurns: 1, maxTurns: 1, next: 'project_dive' },
+      project_dive:   { minTurns: 1, maxTurns: 2, next: 'basic_verify', maxProjects: 1 },
+      basic_verify:   { minTurns: 1, maxTurns: 2, next: 'closing' },
+      closing:        { minTurns: 1, next: null },
+    },
+    standard: {
+      opening:        { minTurns: 1, next: 'intro' },
+      intro:          { minTurns: 1, next: 'intro_followup' },
+      intro_followup: { minTurns: 1, maxTurns: 2, next: 'project_dive' },
+      project_dive:   { minTurns: 2, maxTurns: 4, next: 'basic_verify', maxProjects: 2 },
+      basic_verify:   { minTurns: 2, maxTurns: 3, next: 'closing' },
+      closing:        { minTurns: 1, next: null },
+    },
+    deep: {
+      opening:        { minTurns: 1, next: 'intro' },
+      intro:          { minTurns: 1, next: 'intro_followup' },
+      intro_followup: { minTurns: 2, maxTurns: 3, next: 'project_dive' },
+      project_dive:   { minTurns: 3, maxTurns: 5, next: 'basic_verify', maxProjects: 3 },
+      basic_verify:   { minTurns: 3, maxTurns: 4, next: 'closing' },
+      closing:        { minTurns: 1, next: null },
+    },
+  };
+  return flows[depth] || flows.standard;
+}
 
 export class InterviewEngine {
   /**
@@ -26,13 +51,16 @@ export class InterviewEngine {
     this.stage        = session.stage;
     this.projectIndex = session.project_index || 0;
     this.stageTurns   = session.stage_turns   || 0;
+    // 从 duration 字段读取 depth 值，兼容旧数据
+    this.depth        = typeof session.duration === 'string' ? session.duration : 'standard';
+    this.stageFlow    = getStageFlow(this.depth);
   }
 
   /**
    * 判断是否应该推进阶段
    */
   shouldAdvanceStage() {
-    const config = STAGE_FLOW[this.stage];
+    const config = this.stageFlow[this.stage];
     if (!config) return false;
     if (this.stageTurns < (config.minTurns || 1)) return false;
     if (config.maxTurns && this.stageTurns >= config.maxTurns) return true;
@@ -45,14 +73,15 @@ export class InterviewEngine {
   advanceStage() {
     // project_dive 阶段先切项目，再切阶段
     if (this.stage === 'project_dive') {
-      const maxProjects = Math.min(this.parsed.projects.length, 2);
+      const stageConfig = this.stageFlow[this.stage];
+      const maxProjects = Math.min(this.parsed.projects.length, stageConfig.maxProjects || 2);
       if (this.projectIndex < maxProjects - 1) {
         this.projectIndex++;
         this.stageTurns = 0;
         return;
       }
     }
-    const next = STAGE_FLOW[this.stage]?.next;
+    const next = this.stageFlow[this.stage]?.next;
     if (next) {
       this.stage = next;
       this.stageTurns = 0;
@@ -80,10 +109,16 @@ export class InterviewEngine {
       stage:          this.stage,
       currentProject: this.getCurrentProject(),
     });
+
+    // closing 阶段：将收尾指令直接注入用户消息，确保 AI 无法忽略
+    const finalUserContent = this.stage === 'closing'
+      ? `${userContent}\n\n---\n[面试官内部提示：面试时间已到，上面是候选人的最后一个回答。你现在必须做收尾总结，严禁再提出任何新问题或追问。请简要回应候选人的回答，然后用2-3句话总结其整体表现，最后感谢参与。]`
+      : userContent;
+
     return [
       { role: 'system', content: systemPrompt },
       ...this.messages.map(m => ({ role: m.role, content: m.content })),
-      { role: 'user', content: userContent },
+      { role: 'user', content: finalUserContent },
     ];
   }
 

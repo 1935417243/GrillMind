@@ -14,7 +14,7 @@ export default async function interviewRoutes(fastify) {
 
   // 创建面试会话
   fastify.post('/api/v1/sessions', async (req, reply) => {
-    const { resumeId, jobType, duration, difficulty, focus } = req.body;
+    const { resumeId, jobType, depth, difficulty, focus } = req.body;
 
     // 检查简历
     const resume = db.prepare('SELECT * FROM resumes WHERE id = ?').get(resumeId);
@@ -33,10 +33,16 @@ export default async function interviewRoutes(fastify) {
 
     const id = uuidv4();
 
-    // 生成开场白（本地模板，不调用 AI）
+    // 根据深度生成开场白
+    const depthValue = depth || 'standard';
+    const openingTexts = {
+      quick:    '你好，我是今天的面试官。我们做一次简短的技术交流，主要围绕你的项目经历来展开。准备好了的话，先请你做一个简单的自我介绍吧。',
+      standard: '你好，我是今天的面试官。我们这场面试会围绕你的技术背景和项目经历来展开。准备好了的话，先请你做一个简单的自我介绍吧。',
+      deep:     '你好，我是今天的面试官。我们今天会比较深入地聊一聊你的技术背景、项目经历以及基础能力。准备好了的话，先请你做一个简单的自我介绍吧。',
+    };
     const openingMessage = {
       role: 'assistant',
-      content: '你好，我是今天的面试官。我们这场面试时间大约在 30 分钟左右，主要围绕你的技术背景和项目经历来展开。准备好了的话，先请你做一个简单的自我介绍吧。',
+      content: openingTexts[depthValue] || openingTexts.standard,
       timestamp: nowCST(),
       stage: 'opening',
     };
@@ -49,7 +55,7 @@ export default async function interviewRoutes(fastify) {
       id,
       resumeId,
       jobType || resume.job_type || 'backend',
-      duration || 30,
+      depthValue,
       difficulty || 'pressure',
       focus || 'mixed',
       JSON.stringify([openingMessage]),
@@ -93,7 +99,7 @@ export default async function interviewRoutes(fastify) {
         id: row.id,
         resumeName: row.resume_name,
         jobType: row.job_type,
-        duration: row.duration,
+        depth: row.duration,
         difficulty: row.difficulty,
         status: row.status,
         startedAt: row.started_at,

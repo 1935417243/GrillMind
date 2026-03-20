@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppState } from '../store/AppContext';
 import { sessionApi, modelApi } from '../api/client';
+import CustomSelect from '../components/CustomSelect';
 import './StartInterview.css';
 
 export default function StartInterview() {
   const navigate   = useNavigate();
   const { activeResume } = useAppState();
   const [jobType,    setJobType]    = useState('backend');
-  const [duration,   setDuration]   = useState(30);
+  const [depth,      setDepth]      = useState('standard');
   const [difficulty, setDifficulty] = useState('pressure');
   const [focus,      setFocus]      = useState('mixed');
   const [binding,    setBinding]    = useState(null);
@@ -34,7 +35,7 @@ export default function StartInterview() {
       const { sessionId } = await sessionApi.create({
         resumeId: activeResume.id,
         jobType,
-        duration,
+        depth,
         difficulty,
         focus,
       });
@@ -48,6 +49,7 @@ export default function StartInterview() {
 
   const difficultyMap = { normal: '普通', pressure: '有压力', high: '高压' };
   const focusMap      = { mixed: '综合', project: '项目深挖', basic: '基础能力' };
+  const depthMap      = { quick: '快速面试', standard: '标准面试', deep: '深度面试' };
 
   return (
     <div className="main">
@@ -108,28 +110,40 @@ export default function StartInterview() {
           <div className="card-label">面试参数</div>
           <div className="param-row">
             <div className="param-item">
-              <div className="param-label">时长</div>
-              <select className="param-select" value={duration} onChange={e => setDuration(+e.target.value)}>
-                <option value={20}>20 分钟</option>
-                <option value={30}>30 分钟</option>
-                <option value={45}>45 分钟</option>
-              </select>
+              <div className="param-label">深度</div>
+              <CustomSelect
+                value={depth}
+                options={[
+                  { value: 'quick', label: '快速面试' },
+                  { value: 'standard', label: '标准面试' },
+                  { value: 'deep', label: '深度面试' },
+                ]}
+                onChange={setDepth}
+              />
             </div>
             <div className="param-item">
               <div className="param-label">难度</div>
-              <select className="param-select" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
-                <option value="normal">普通</option>
-                <option value="pressure">有压力</option>
-                <option value="high">高压</option>
-              </select>
+              <CustomSelect
+                value={difficulty}
+                options={[
+                  { value: 'normal', label: '普通' },
+                  { value: 'pressure', label: '有压力' },
+                  { value: 'high', label: '高压' },
+                ]}
+                onChange={setDifficulty}
+              />
             </div>
             <div className="param-item">
               <div className="param-label">侧重点</div>
-              <select className="param-select" value={focus} onChange={e => setFocus(e.target.value)}>
-                <option value="mixed">综合</option>
-                <option value="project">项目深挖</option>
-                <option value="basic">基础能力</option>
-              </select>
+              <CustomSelect
+                value={focus}
+                options={[
+                  { value: 'mixed', label: '综合' },
+                  { value: 'project', label: '项目深挖' },
+                  { value: 'basic', label: '基础能力' },
+                ]}
+                onChange={setFocus}
+              />
             </div>
           </div>
         </div>
@@ -167,7 +181,7 @@ export default function StartInterview() {
             {starting ? '创建中...' : '开始面试'}
           </button>
           <span className="start-hint">
-            预计 {duration} 分钟 · {jobType === 'backend' ? '后端工程师' : '测试工程师'} · {difficultyMap[difficulty]}
+            {depthMap[depth]} · {jobType === 'backend' ? '后端工程师' : '测试工程师'} · {difficultyMap[difficulty]}
           </span>
         </div>
 
