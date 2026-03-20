@@ -1,14 +1,30 @@
 // 开始面试页面
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAppState } from '../store/AppContext';
-import { sessionApi, modelApi } from '../api/client';
+import { useAppState, useAppDispatch } from '../store/AppContext';
+import { sessionApi, modelApi, resumeApi } from '../api/client';
 import CustomSelect from '../components/CustomSelect';
 import './StartInterview.css';
 
 export default function StartInterview() {
   const navigate   = useNavigate();
+  const dispatch   = useAppDispatch();
   const { activeResume } = useAppState();
+
+  // 页面挂载时主动加载简历列表，确保 activeResume 被正确设置
+  useEffect(() => {
+    if (!activeResume) {
+      resumeApi.list().then(data => {
+        const active = data.find(r => r.isActive);
+        if (active) {
+          dispatch({ type: 'SET_ACTIVE_RESUME', payload: active });
+        }
+        dispatch({ type: 'SET_RESUMES', payload: data });
+      }).catch(err => {
+        console.error('加载简历列表失败:', err);
+      });
+    }
+  }, [activeResume, dispatch]);
   const [jobType,    setJobType]    = useState('backend');
   const [depth,      setDepth]      = useState('standard');
   const [difficulty, setDifficulty] = useState('pressure');
