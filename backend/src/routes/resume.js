@@ -77,7 +77,7 @@ export default async function resumeRoutes(fastify) {
       let parsed = null;
       const fullRow = db.prepare('SELECT parsed FROM resumes WHERE id = ?').get(row.id);
       if (fullRow?.parsed) {
-        try { parsed = JSON.parse(fullRow.parsed); } catch {}
+        try { parsed = JSON.parse(fullRow.parsed); } catch { }
       }
       return {
         id: row.id,
@@ -129,11 +129,40 @@ export default async function resumeRoutes(fastify) {
       });
     }
 
-    // 删除文件
-    try { await fs.unlink(row.file_path); } catch {}
+    // 检查是否有关联的面试记录
+    const sessionCount = db.prepare(
+      'SELECT COUNT(*) as count FROM interview_sessions WHERE resume_id = ?'
+    ).get(req.params.id).count;
 
-    // 删除数据库记录
-    db.prepare('DELETE FROM resumes WHERE id = ?').run(req.params.id);
+    // force 参数表示用户已确认强制删除
+    const force = req.query.force === 'true';
+
+    if (sessionCount > 0 && !force) {
+      return reply.code(409).send({
+        success: false,
+        error: {
+          code: 'RESUME_HAS_SESSIONS',
+          message: `该简历关联了 ${sessionCount} 场面试记录，删除后相关记录也会一并删除。`,
+          sessionCount,
+        },
+      });
+    }
+
+    // 删除文件
+    try { await fs.unlink(row.file_path); } catch { }
+
+    // 级联删除：面试报告 → 面试会话 → 简历
+    const deleteAll = db.transaction((resumeId) => {
+      db.prepare(`
+        DELETE FROM interview_reports WHERE session_id IN (
+          SELECT id FROM interview_sessions WHERE resume_id = ?
+        )
+      `).run(resumeId);
+      db.prepare('DELETE FROM interview_sessions WHERE resume_id = ?').run(resumeId);
+      db.prepare('DELETE FROM resumes WHERE id = ?').run(resumeId);
+    });
+    deleteAll(req.params.id);
+
     return { success: true, data: null };
   });
 

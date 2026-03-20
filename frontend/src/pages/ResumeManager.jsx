@@ -6,11 +6,17 @@ import ResumeDrawer from '../components/ResumeDrawer';
 import './ResumeManager.css';
 
 export default function ResumeManager() {
-  const { resumes, loading, uploadResume, activateResume, deleteResume, getResumeDetail, reparseResume } = useResume();
+  const { resumes, loading, uploadResume, activateResume, deleteResume, forceDeleteResume, getResumeDetail, reparseResume } = useResume();
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerResume, setDrawerResume] = useState(null);
+
+  // 删除确认弹窗状态
+  const [deleteTarget, setDeleteTarget] = useState(null);     // 待删除的简历对象
+  const [deleteMessage, setDeleteMessage] = useState('');      // 弹窗提示文案
+  const [hasSessionConflict, setHasSessionConflict] = useState(false); // 是否有关联面试
+  const [deleting, setDeleting] = useState(false);             // 删除中状态
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -44,6 +50,48 @@ export default function ResumeManager() {
     setTimeout(() => setDrawerResume(null), 300);
   };
 
+  // 点击删除按钮 → 弹窗确认
+  const handleDeleteClick = (id) => {
+    const resume = resumes.find(r => r.id === id);
+    setDeleteTarget(resume || { id });
+    setDeleteMessage('');
+    setHasSessionConflict(false);
+  };
+
+  // 用户确认删除
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      if (hasSessionConflict) {
+        // 已确认有关联面试，走强制删除
+        await forceDeleteResume(deleteTarget.id);
+      } else {
+        // 普通删除
+        await deleteResume(deleteTarget.id);
+      }
+      closeDeleteDialog();
+    } catch (err) {
+      if (err.code === 'RESUME_HAS_SESSIONS') {
+        // 后端返回有关联面试，切换弹窗内容让用户再次确认
+        setDeleteMessage(err.message);
+        setHasSessionConflict(true);
+      } else {
+        alert('删除失败：' + err.message);
+        closeDeleteDialog();
+      }
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // 关闭删除弹窗
+  const closeDeleteDialog = () => {
+    setDeleteTarget(null);
+    setDeleteMessage('');
+    setHasSessionConflict(false);
+  };
+
   return (
     <div className="main">
       <div className="topbar">
@@ -61,7 +109,7 @@ export default function ResumeManager() {
               key={resume.id}
               resume={resume}
               onActivate={activateResume}
-              onDelete={deleteResume}
+              onDelete={handleDeleteClick}
               onView={handleViewParse}
               onReparse={reparseResume}
             />
@@ -93,6 +141,39 @@ export default function ResumeManager() {
         />
 
       </div>
+
+      {/* 删除确认弹窗 */}
+      {deleteTarget && (
+        <div className="confirm-overlay" onClick={closeDeleteDialog}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-title">
+              {hasSessionConflict ? '无法直接删除' : '确认删除'}
+            </div>
+            <div className="confirm-body">
+              {hasSessionConflict ? (
+                <>
+                  {deleteMessage}
+                  <div className="confirm-detail">
+                    📄 {deleteTarget.name || '未知简历'}
+                  </div>
+                  <div className="confirm-warn">确认后将一并删除关联的面试记录和报告，且无法恢复。</div>
+                </>
+              ) : (
+                <>
+                  确定要删除简历「{deleteTarget.name}」吗？
+                  <div className="confirm-warn">删除后将无法恢复。</div>
+                </>
+              )}
+            </div>
+            <div className="confirm-actions">
+              <button className="btn btn-ghost btn-sm" onClick={closeDeleteDialog}>取消</button>
+              <button className="btn btn-danger btn-sm" onClick={handleConfirmDelete} disabled={deleting}>
+                {deleting ? '删除中...' : '确认删除'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

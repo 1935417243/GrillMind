@@ -52,9 +52,15 @@ export function useResume() {
     await loadResumes();
   }, [loadResumes]);
 
-  // 删除简历
+  // 删除简历（可能返回 409 表示有关联面试记录）
   const deleteResume = useCallback(async (id) => {
     await resumeApi.delete(id);
+    await loadResumes();
+  }, [loadResumes]);
+
+  // 强制删除简历（级联删除关联的面试记录和报告）
+  const forceDeleteResume = useCallback(async (id) => {
+    await resumeApi.forceDelete(id);
     await loadResumes();
   }, [loadResumes]);
 
@@ -121,5 +127,5 @@ export function useResume() {
     loadResumes();
   }, [loadResumes]);
 
-  return { resumes, loading, uploadResume, activateResume, deleteResume, loadResumes, getResumeDetail, reparseResume };
+  return { resumes, loading, uploadResume, activateResume, deleteResume, forceDeleteResume, loadResumes, getResumeDetail, reparseResume };
 }

@@ -20,7 +20,10 @@ async function request(endpoint, options = {}) {
   const data = await response.json();
 
   if (!data.success) {
-    throw new Error(data.error?.message || '请求失败');
+    const err = new Error(data.error?.message || '请求失败');
+    err.code = data.error?.code;
+    err.detail = data.error;
+    throw err;
   }
 
   return data.data;
@@ -36,6 +39,7 @@ export const resumeApi = {
   list: () => request('/resumes'),
   get: (id) => request(`/resumes/${id}`),
   delete: (id) => request(`/resumes/${id}`, { method: 'DELETE' }),
+  forceDelete: (id) => request(`/resumes/${id}?force=true`, { method: 'DELETE' }),
   activate: (id) => request(`/resumes/${id}/activate`, { method: 'PUT' }),
   parseStatus: (id) => request(`/resumes/${id}/parse-status`),
   reparse: (id) => request(`/resumes/${id}/reparse`, { method: 'POST' }),
