@@ -49,6 +49,16 @@ function initDB() {
     // 列已存在，忽略
   }
 
+  // 迁移：为 task_model_binding 添加深度思考开关列（已有则忽略）
+  const thinkingCols = ['parse_thinking', 'interview_thinking', 'report_thinking', 'base_thinking'];
+  for (const col of thinkingCols) {
+    try {
+      db.exec(`ALTER TABLE task_model_binding ADD COLUMN ${col} INTEGER DEFAULT 0`);
+    } catch {
+      // 列已存在，忽略
+    }
+  }
+
   // 迁移：为 job_positions 添加 category 列（已有则忽略）
   try {
     db.exec("ALTER TABLE job_positions ADD COLUMN category TEXT DEFAULT 'non-tech'");

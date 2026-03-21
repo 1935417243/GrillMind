@@ -19,7 +19,10 @@ export default function ModelSettings() {
   const [testStatus, setTestStatus] = useState({});
 
   // 任务绑定
-  const [binding, setBinding] = useState({ parseModel: '', interviewModel: '', reportModel: '', baseModel: '' });
+  const [binding, setBinding] = useState({
+    parseModel: '', interviewModel: '', reportModel: '', baseModel: '',
+    parseThinking: false, interviewThinking: false, reportThinking: false, baseThinking: false,
+  });
 
   // 加载数据
   useEffect(() => {
@@ -30,6 +33,10 @@ export default function ModelSettings() {
         interviewModel: data.interviewModel || '',
         reportModel: data.reportModel || '',
         baseModel: data.baseModel || '',
+        parseThinking: !!data.parseThinking,
+        interviewThinking: false, // 面试对话强制关闭
+        reportThinking: !!data.reportThinking,
+        baseThinking: !!data.baseThinking,
       });
     }).catch(() => {});
   }, []);
@@ -126,6 +133,82 @@ export default function ModelSettings() {
   const getProviderHasKey = (name) => getProvider(name)?.hasApiKey;
   const getProviderModelCount = (name) => getProvider(name)?.models?.length || 0;
 
+  /**
+   * 判断深度思考开关是否应该显示和可用
+   * @param {string} taskKey - 任务标识（如 'parseModel'）
+   * @param {string} modelValue - 当前选择的模型值 'provider::model'
+   * @returns {{ visible: boolean, enabled: boolean, tooltip: string }}
+   */
+  const getThinkingState = (taskKey, modelValue) => {
+    // 面试对话：始终置灰锁定
+    if (taskKey === 'interviewModel') {
+      return { visible: true, enabled: false, tooltip: '面试对话需保证实时响应速度，不支持开启深度思考' };
+    }
+
+    // 选了 DeepSeek 系列模型时，隐藏开关
+    if (modelValue) {
+      const modelName = modelValue.split('::')[1] || '';
+      if (modelName.toLowerCase().includes('deepseek')) {
+        return { visible: false, enabled: false, tooltip: '' };
+      }
+    }
+
+    // 选了 bailian 供应商的模型 → 可用
+    if (modelValue && modelValue.startsWith('bailian::')) {
+      return { visible: true, enabled: true, tooltip: '' };
+    }
+
+    // 其他模型（未选择 / 不支持深度思考）
+    if (modelValue) {
+      return { visible: true, enabled: false, tooltip: '该模型不支持深度思考' };
+    }
+
+    // 未选择模型
+    return { visible: false, enabled: false, tooltip: '' };
+  };
+
+  /** 深度思考 Toggle 组件 */
+  const ThinkingToggle = ({ taskKey, thinkingKey, modelValue }) => {
+    const state = getThinkingState(taskKey, modelValue);
+    if (!state.visible) return null;
+
+    const checked = binding[thinkingKey];
+
+    const toggle = (
+      <label className={`thinking-toggle ${!state.enabled ? 'disabled' : ''}`}>
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={!state.enabled}
+          onChange={e => {
+            if (!state.enabled) return;
+            setBinding(prev => ({ ...prev, [thinkingKey]: e.target.checked }));
+          }}
+        />
+        <span className="thinking-toggle-track" />
+      </label>
+    );
+
+    if (!state.enabled && state.tooltip) {
+      return (
+        <div className="thinking-toggle-wrap">
+          <span className="thinking-toggle-label">深度思考</span>
+          <div className="thinking-tooltip-wrap">
+            {toggle}
+            <span className="thinking-tooltip">{state.tooltip}</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="thinking-toggle-wrap">
+        <span className="thinking-toggle-label">深度思考</span>
+        {toggle}
+      </div>
+    );
+  };
+
   const renderProviderCard = (name, label) => (
     <div className="provider-card" key={name}>
       <div className="provider-header">
@@ -206,50 +289,66 @@ export default function ModelSettings() {
         <div className="divider"></div>
 
         <div className="card-label" style={{marginBottom:'8px'}}>任务模型分配</div>
+        <div className="thinking-tip">
+          <span className="thinking-tip-icon">💡</span>
+          深度思考模式会增加响应时间，建议仅对质量要求高的任务启用
+        </div>
         <div className="card">
           <div className="binding-row">
-            <span className="binding-label">
+            <span className="binding-label" style={{flex:1}}>
               简历解析模型
               <span className="binding-hint">结构化稳定性优先</span>
             </span>
-            <ModelDropdown
-              providers={dropdownProviders}
-              value={binding.parseModel}
-              onChange={v => setBinding(prev => ({ ...prev, parseModel: v }))}
-            />
+            <div className="binding-row-right">
+              <ThinkingToggle taskKey="parseModel" thinkingKey="parseThinking" modelValue={binding.parseModel} />
+              <ModelDropdown
+                providers={dropdownProviders}
+                value={binding.parseModel}
+                onChange={v => setBinding(prev => ({ ...prev, parseModel: v }))}
+              />
+            </div>
           </div>
           <div className="binding-row">
-            <span className="binding-label">
+            <span className="binding-label" style={{flex:1}}>
               面试对话模型
               <span className="binding-hint">响应速度优先</span>
             </span>
-            <ModelDropdown
-              providers={dropdownProviders}
-              value={binding.interviewModel}
-              onChange={v => setBinding(prev => ({ ...prev, interviewModel: v }))}
-            />
+            <div className="binding-row-right">
+              <ThinkingToggle taskKey="interviewModel" thinkingKey="interviewThinking" modelValue={binding.interviewModel} />
+              <ModelDropdown
+                providers={dropdownProviders}
+                value={binding.interviewModel}
+                onChange={v => setBinding(prev => ({ ...prev, interviewModel: v }))}
+              />
+            </div>
           </div>
           <div className="binding-row">
-            <span className="binding-label">
+            <span className="binding-label" style={{flex:1}}>
               报告生成模型
               <span className="binding-hint">可复用对话模型</span>
             </span>
-            <ModelDropdown
-              providers={dropdownProviders}
-              value={binding.reportModel}
-              onChange={v => setBinding(prev => ({ ...prev, reportModel: v }))}
-            />
+            <div className="binding-row-right">
+              <ThinkingToggle taskKey="reportModel" thinkingKey="reportThinking" modelValue={binding.reportModel} />
+              <ModelDropdown
+                providers={dropdownProviders}
+                value={binding.reportModel}
+                onChange={v => setBinding(prev => ({ ...prev, reportModel: v }))}
+              />
+            </div>
           </div>
           <div className="binding-row" style={{borderBottom:'none'}}>
-            <span className="binding-label">
+            <span className="binding-label" style={{flex:1}}>
               基础模型
               <span className="binding-hint">通用辅助，如 AI 生成岗位等</span>
             </span>
-            <ModelDropdown
-              providers={dropdownProviders}
-              value={binding.baseModel}
-              onChange={v => setBinding(prev => ({ ...prev, baseModel: v }))}
-            />
+            <div className="binding-row-right">
+              <ThinkingToggle taskKey="baseModel" thinkingKey="baseThinking" modelValue={binding.baseModel} />
+              <ModelDropdown
+                providers={dropdownProviders}
+                value={binding.baseModel}
+                onChange={v => setBinding(prev => ({ ...prev, baseModel: v }))}
+              />
+            </div>
           </div>
           <div style={{marginTop:'12px'}}>
             <button className="btn btn-primary btn-sm" onClick={handleBindingSave}>保存绑定</button>
@@ -264,3 +363,4 @@ export default function ModelSettings() {
     </div>
   );
 }
+

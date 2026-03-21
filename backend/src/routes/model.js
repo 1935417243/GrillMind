@@ -52,14 +52,18 @@ export default async function modelRoutes(fastify) {
         interviewModel: binding?.interview_model,
         reportModel: binding?.report_model,
         baseModel: binding?.base_model,
+        parseThinking: !!binding?.parse_thinking,
+        interviewThinking: !!binding?.interview_thinking,
+        reportThinking: !!binding?.report_thinking,
+        baseThinking: !!binding?.base_thinking,
       },
     };
   });
 
   // 更新任务模型绑定
   fastify.put('/api/v1/models/binding', async (req, reply) => {
-    const { parseModel, interviewModel, reportModel, baseModel } = req.body;
-    updateModelBinding({ parseModel, interviewModel, reportModel, baseModel });
-    return { success: true, data: { parseModel, interviewModel, reportModel, baseModel } };
+    const { parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking } = req.body;
+    updateModelBinding({ parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking });
+    return { success: true, data: { parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking } };
   });
 }

@@ -2,7 +2,7 @@
 // 提取 Q&A 对 → AI 评估 → 写入数据库
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/index.js';
-import { chatCompletionWithRetry, getTaskModel } from '../ai/client.js';
+import { chatCompletionWithRetry, getTaskModel, getTaskThinking, buildThinkingExtraBody } from '../ai/client.js';
 import { buildReportPrompt } from '../ai/prompts/reportGen.js';
 import { safeParseAIJson } from '../utils/fileUtils.js';
 import { nowCSTShort } from '../utils/time.js';
@@ -55,6 +55,7 @@ export async function generateReportAsync(sessionId) {
     const aiResult = await chatCompletionWithRetry({
       providerModel: reportModel,
       messages: promptMessages,
+      extraBody: buildThinkingExtraBody(reportModel, getTaskThinking('report')),
     });
 
     // 解析报告结果

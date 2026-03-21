@@ -25,11 +25,15 @@ CREATE TABLE IF NOT EXISTS model_providers (
 
 -- 任务模型绑定（单例，id 固定为 'singleton'）
 CREATE TABLE IF NOT EXISTS task_model_binding (
-  id              TEXT PRIMARY KEY DEFAULT 'singleton',
-  parse_model     TEXT,   -- 'deepseek::deepseek-reasoner'
-  interview_model TEXT,
-  report_model    TEXT,   -- null 表示复用 interview_model
-  base_model      TEXT    -- 通用辅助模型（如 AI 生成岗位等）
+  id                  TEXT PRIMARY KEY DEFAULT 'singleton',
+  parse_model         TEXT,   -- 'deepseek::deepseek-reasoner'
+  interview_model     TEXT,
+  report_model        TEXT,   -- null 表示复用 interview_model
+  base_model          TEXT,   -- 通用辅助模型（如 AI 生成岗位等）
+  parse_thinking      INTEGER DEFAULT 0,  -- 简历解析深度思考开关
+  interview_thinking  INTEGER DEFAULT 0,  -- 面试对话深度思考（永久关闭）
+  report_thinking     INTEGER DEFAULT 0,  -- 报告生成深度思考开关
+  base_thinking       INTEGER DEFAULT 0   -- 基础模型深度思考开关
 );
 
 -- 面试会话

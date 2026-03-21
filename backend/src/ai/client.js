@@ -58,6 +58,43 @@ export function getTaskModel(task) {
 }
 
 /**
+ * 获取任务对应的深度思考开关状态
+ * @param {'parse' | 'interview' | 'report' | 'base'} task
+ * @returns {boolean}
+ */
+export function getTaskThinking(task) {
+  const binding = db.prepare(
+    "SELECT * FROM task_model_binding WHERE id = 'singleton'"
+  ).get();
+
+  const map = {
+    parse:     !!binding?.parse_thinking,
+    interview: false, // 面试对话永久关闭深度思考
+    report:    !!binding?.report_thinking,
+    base:      !!binding?.base_thinking,
+  };
+
+  return map[task] || false;
+}
+
+/**
+ * 根据供应商和深度思考开关构建 extraBody
+ * - deepseek：不传额外参数（由模型自身决定）
+ * - bailian/qwen：传 enable_thinking
+ * @param {string} providerModel - 'provider::model'
+ * @param {boolean} enableThinking - 是否开启深度思考
+ * @returns {object}
+ */
+export function buildThinkingExtraBody(providerModel, enableThinking) {
+  const [provider] = providerModel.split('::');
+  if (provider === 'bailian') {
+    return { enable_thinking: !!enableThinking };
+  }
+  // DeepSeek 和其他供应商不传额外参数
+  return {};
+}
+
+/**
  * 调用 AI Chat Completion
  * @param {object} options
  * @param {string} options.providerModel - 'provider::model'

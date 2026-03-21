@@ -5,7 +5,7 @@ import mammoth  from 'mammoth';
 import fs       from 'fs/promises';
 import path     from 'path';
 import { db }   from '../db/index.js';
-import { chatCompletionWithRetry, getTaskModel } from '../ai/client.js';
+import { chatCompletionWithRetry, getTaskModel, getTaskThinking, buildThinkingExtraBody } from '../ai/client.js';
 import { buildResumeParsePrompt } from '../ai/prompts/resumeParse.js';
 import { safeParseAIJson } from '../utils/fileUtils.js';
 
@@ -67,6 +67,7 @@ export async function parseResumeAsync(resumeId, filePath, originalName) {
     const aiResult = await chatCompletionWithRetry({
       providerModel: parseModel,
       messages,
+      extraBody: buildThinkingExtraBody(parseModel, getTaskThinking('parse')),
     });
 
     // 安全解析 JSON

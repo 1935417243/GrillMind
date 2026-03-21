@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/index.js';
 import { InterviewEngine } from '../services/interviewEngine.js';
-import { chatCompletion, getTaskModel } from '../ai/client.js';
+import { chatCompletion, getTaskModel, buildThinkingExtraBody } from '../ai/client.js';
 import { generateReportAsync } from '../services/reportGenerator.js';
 import { nowCST, nowCSTShort } from '../utils/time.js';
 
@@ -198,9 +198,8 @@ export default async function interviewRoutes(fastify) {
     const aiMessages     = engine.buildAIMessages(content);
     const interviewModel = getTaskModel('interview');
 
-    // 百炼（Qwen3 系列）默认开启深度思考，面试对话需关闭以缩短响应时间
-    const isBailian = interviewModel.startsWith('bailian::');
-    const extraBody = isBailian ? { enable_thinking: false } : {};
+    // 面试对话永久关闭深度思考，使用统一的 extraBody 构建
+    const extraBody = buildThinkingExtraBody(interviewModel, false);
 
     // 设置 SSE 响应头
     reply.raw.writeHead(200, {

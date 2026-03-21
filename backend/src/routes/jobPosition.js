@@ -1,7 +1,7 @@
 // 岗位管理路由
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/index.js';
-import { getTaskModel, chatCompletionWithRetry } from '../ai/client.js';
+import { getTaskModel, chatCompletionWithRetry, getTaskThinking, buildThinkingExtraBody } from '../ai/client.js';
 
 /**
  * 注册岗位管理相关路由
@@ -256,6 +256,7 @@ export default async function jobPositionRoutes(fastify) {
       const content = await chatCompletionWithRetry({
         providerModel,
         messages: [{ role: 'user', content: prompt }],
+        extraBody: buildThinkingExtraBody(providerModel, getTaskThinking('base')),
       });
 
       // 从返回内容中提取 JSON（兼容 markdown 代码块包裹）
