@@ -113,23 +113,22 @@ export default function StartInterview() {
         <div className="card">
           <div className="card-label">岗位类型</div>
           <div style={{fontSize:'12px',color:'var(--text-muted)',marginBottom:'10px'}}>系统已从简历识别推荐，可手动切换</div>
-          <div className="role-selector">
-            {jobList.map(job => (
-              <div
-                key={job.id}
-                className={`role-option ${jobType === job.id ? 'selected' : ''}`}
-                onClick={() => setJobType(job.id)}
-              >
-                <div className="role-title">{job.name}</div>
-                <div className="role-desc">{job.tags || ''}</div>
-              </div>
-            ))}
-            {jobList.length === 0 && (
-              <div style={{color:'var(--text-muted)', fontSize:'12px', padding:'8px 0'}}>
-                暂无已启用的岗位，请先在 <a href="/jobs" style={{color:'var(--accent)'}}>岗位管理</a> 中配置
-              </div>
-            )}
-          </div>
+          {jobList.length > 0 ? (
+            <div className="job-select-wrapper">
+              <CustomSelect
+                value={jobType}
+                options={jobList.map(job => ({
+                  value: job.id,
+                  label: job.tags ? `${job.name} · ${job.tags}` : job.name,
+                }))}
+                onChange={setJobType}
+              />
+            </div>
+          ) : (
+            <div style={{color:'var(--text-muted)', fontSize:'12px', padding:'8px 0'}}>
+              暂无已启用的岗位，请先在 <a href="/jobs" style={{color:'var(--accent)'}}>岗位管理</a> 中配置
+            </div>
+          )}
         </div>
 
         {/* 面试参数 */}
