@@ -11,23 +11,34 @@
  * @param {'mixed' | 'project' | 'basic'} params.focus
  * @param {string} params.stage - 当前阶段
  * @param {object|null} params.currentProject - 当前深挖的项目
+ * @param {'tech' | 'non-tech'} params.category - 岗位类型
  * @returns {string}
  */
-export function buildInterviewSystemPrompt({ jobName, scripts, parsed, difficulty, focus, stage, currentProject }) {
+export function buildInterviewSystemPrompt({ jobName, scripts, parsed, difficulty, focus, stage, currentProject, category = 'tech' }) {
   const difficultyNote = DIFFICULTY_NOTES[difficulty] || DIFFICULTY_NOTES.pressure;
   const focusNote = FOCUS_NOTES[focus] || FOCUS_NOTES.mixed;
   const jobScript = (scripts && scripts[focus]) || (scripts && scripts.mixed) || '';
   const stageNote = STAGE_NOTES[stage];
+  const isTech = category === 'tech';
 
   const projectContext = currentProject
     ? `\n当前深挖项目：${currentProject.name}\n可追问点：${currentProject.deepDivePoints.join('、')}`
     : '';
 
-  return `你是一位有经验的技术面试官，正在对候选人进行技术一面。
+  // 根据岗位类型切换角色描述和候选人背景展示
+  const roleDesc = isTech
+    ? '你是一位有经验的技术面试官，正在对候选人进行技术一面。'
+    : '你是一位有经验的面试官，正在对候选人进行面试。';
+
+  const skillLine = isTech
+    ? `技术栈：${parsed.techStack.join('、')}`
+    : `专业技能：${(parsed.techStack || []).join('、') || '未提供'}`;
+
+  return `${roleDesc}
 
 【候选人背景】
 工作年限：${parsed.yearsOfExperience} 年
-技术栈：${parsed.techStack.join('、')}
+${skillLine}
 核心项目：${parsed.projects.map(p => p.name).join('、')}
 ${projectContext}
 

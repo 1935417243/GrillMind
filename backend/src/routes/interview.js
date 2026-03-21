@@ -33,13 +33,17 @@ export default async function interviewRoutes(fastify) {
 
     // 验证岗位存在且已启用
     const finalJobType = jobType || resume.job_type;
+    let jobCategory = 'non-tech';
     if (finalJobType) {
-      const jobPos = db.prepare('SELECT id, enabled FROM job_positions WHERE id = ?').get(finalJobType);
+      const jobPos = db.prepare('SELECT id, enabled, category FROM job_positions WHERE id = ?').get(finalJobType);
       if (jobPos && !jobPos.enabled) {
         return reply.code(400).send({
           success: false,
           error: { code: 'POSITION_DISABLED', message: '该岗位已被禁用' },
         });
+      }
+      if (jobPos) {
+        jobCategory = jobPos.category || 'non-tech';
       }
     }
 
@@ -49,16 +53,17 @@ export default async function interviewRoutes(fastify) {
     const depthValue = depth || 'standard';
     const focusValue = focus || 'mixed';
 
-    // 侧重点描述
-    const focusDesc = {
-      mixed:   '技术背景和项目经历',
-      project: '项目经历和架构设计',
-      basic:   '技术基础和核心原理',
-    }[focusValue] || '技术背景和项目经历';
+    // 侧重点描述（根据岗位类型分支）
+    const isTech = jobCategory === 'tech';
+    const focusDesc = isTech
+      ? { mixed: '技术背景和项目经历', project: '项目经历和架构设计', basic: '技术基础和核心原理' }[focusValue] || '技术背景和项目经历'
+      : { mixed: '工作背景和过往经历', project: '工作经历和实操能力', basic: '专业基础和核心能力' }[focusValue] || '工作背景和过往经历';
+
+    const briefChat = isTech ? '技术交流' : '交流';
 
     // 深度模板
     const openingTexts = {
-      quick:    `你好，我是今天的面试官。我们做一次简短的技术交流，主要围绕你的${focusDesc}来展开。准备好了的话，先请你做一个简单的自我介绍吧。`,
+      quick:    `你好，我是今天的面试官。我们做一次简短的${briefChat}，主要围绕你的${focusDesc}来展开。准备好了的话，先请你做一个简单的自我介绍吧。`,
       standard: `你好，我是今天的面试官。我们这场面试会围绕你的${focusDesc}来展开。准备好了的话，先请你做一个简单的自我介绍吧。`,
       deep:     `你好，我是今天的面试官。我们今天会比较深入地聊一聊你的${focusDesc}。准备好了的话，先请你做一个简单的自我介绍吧。`,
     };
@@ -154,7 +159,7 @@ export default async function interviewRoutes(fastify) {
     }
 
     const resume = db.prepare('SELECT * FROM resumes WHERE id = ?').get(session.resume_id);
-    const jobPos = db.prepare('SELECT name FROM job_positions WHERE id = ?').get(session.job_type);
+    const jobPos = db.prepare('SELECT name, category FROM job_positions WHERE id = ?').get(session.job_type);
 
     return {
       success: true,
@@ -164,6 +169,7 @@ export default async function interviewRoutes(fastify) {
         resumeName: resume?.name,
         parsed: resume?.parsed ? JSON.parse(resume.parsed) : null,
         jobName: jobPos?.name || session.job_type || '未知岗位',
+        jobCategory: jobPos?.category || 'non-tech',
       },
     };
   });

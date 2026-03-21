@@ -38,9 +38,10 @@ export async function generateReportAsync(sessionId) {
     const messages = JSON.parse(session.messages);
     const parsed   = JSON.parse(resume.parsed);
 
-    // 查询岗位名称
-    const jobPos = db.prepare('SELECT name FROM job_positions WHERE id = ?').get(session.job_type);
+    // 查询岗位名称和类型
+    const jobPos = db.prepare('SELECT name, category FROM job_positions WHERE id = ?').get(session.job_type);
     const jobName = jobPos ? jobPos.name : (session.job_type || '未知岗位');
+    const category = jobPos ? (jobPos.category || 'non-tech') : 'non-tech';
 
     // 构建 prompt 并调用 AI（非流式）
     const reportModel = getTaskModel('report');
@@ -48,6 +49,7 @@ export async function generateReportAsync(sessionId) {
       messages,
       parsed,
       jobName,
+      category,
     });
 
     const aiResult = await chatCompletionWithRetry({

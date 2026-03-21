@@ -29,24 +29,41 @@ export function extractQAPairs(messages) {
  * @param {Array} params.messages - 面试消息列表
  * @param {object} params.parsed - 简历解析结果
  * @param {string} params.jobName - 岗位名称（如"后端工程师"）
+ * @param {'tech' | 'non-tech'} params.category - 岗位类型
  * @returns {Array} - OpenAI messages 数组
  */
-export function buildReportPrompt({ messages, parsed, jobName }) {
+export function buildReportPrompt({ messages, parsed, jobName, category = 'tech' }) {
   const qaList = extractQAPairs(messages);
+  const isTech = category === 'tech';
 
-  return [
-    {
-      role: 'system',
-      content: `你是一位专业的面试评估专家。
-评估候选人的技术面试表现，只输出合法 JSON，不要有代码块标记。
-
-## 评分标准（overallScore，范围 10 ~ 100）
+  // 根据岗位类型切换评分标准措辞
+  const scoringCriteria = isTech
+    ? `## 评分标准（overallScore，范围 10 ~ 100）
 - 90-100：卓越 — 回答精准深入，对底层原理有独到理解，能举一反三，表达清晰有条理，完全达到高级工程师水平
 - 80-89：优秀 — 核心知识点掌握扎实，能结合实际项目经验回答，逻辑清晰，有少量细节不足
 - 70-79：良好 — 大部分问题能正确回答，但深度不够，部分回答停留在表面，项目经验表达一般
 - 60-69：合格 — 基础知识基本掌握，但有明显知识盲区，回答缺乏深度和实践支撑
 - 40-59：不足 — 多个核心知识点回答错误或不会，技术广度和深度都有明显欠缺
-- 10-39：较差 — 大部分问题无法回答或回答严重错误，技术基础薄弱，与岗位要求差距较大
+- 10-39：较差 — 大部分问题无法回答或回答严重错误，技术基础薄弱，与岗位要求差距较大`
+    : `## 评分标准（overallScore，范围 10 ~ 100）
+- 90-100：卓越 — 回答精准深入，对岗位核心能力有独到理解，能举一反三，表达清晰有条理，完全达到高级从业者水平
+- 80-89：优秀 — 核心能力掌握扎实，能结合实际工作经验回答，逻辑清晰，有少量细节不足
+- 70-79：良好 — 大部分问题能正确回答，但深度不够，部分回答停留在表面，工作经验表达一般
+- 60-69：合格 — 基础能力基本掌握，但有明显知识盲区，回答缺乏深度和实践支撑
+- 40-59：不足 — 多个核心能力点回答错误或不会，专业广度和深度都有明显欠缺
+- 10-39：较差 — 大部分问题无法回答或回答严重错误，专业基础薄弱，与岗位要求差距较大`;
+
+  const evalDesc = isTech
+    ? '评估候选人的技术面试表现'
+    : '评估候选人的面试表现';
+
+  return [
+    {
+      role: 'system',
+      content: `你是一位专业的面试评估专家。
+${evalDesc}，只输出合法 JSON，不要有代码块标记。
+
+${scoringCriteria}
 请严格按照以上标准打分，分数必须为 10 到 100 之间的整数。
 
 输出格式：

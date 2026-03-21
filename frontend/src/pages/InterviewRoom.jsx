@@ -167,11 +167,11 @@ export default function InterviewRoom() {
                   <span className="tag tag-gray">{sessionInfo.parsed.yearsOfExperience}年</span>
                 </div>
                 <div className="side-item">
-                  <span>技术栈</span>
+                  <span>{sessionInfo.jobCategory === 'tech' ? '技术栈' : '专业技能'}</span>
                   <span style={{fontSize:'11px',color:'var(--text-muted)'}}>{sessionInfo.parsed.techStack?.slice(0,3).join(' · ')}</span>
                 </div>
                 <div className="side-item" style={{border:'none'}}>
-                  <span>核心项目</span>
+                  <span>{sessionInfo.jobCategory === 'tech' ? '核心项目' : '核心经历'}</span>
                   <span style={{fontSize:'11px',color:'var(--text-muted)'}}>{sessionInfo.parsed.projects?.map(p => p.name).join('、')}</span>
                 </div>
               </>

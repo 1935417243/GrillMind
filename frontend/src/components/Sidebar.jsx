@@ -16,7 +16,7 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="logo">
         <div className="logo-zh">智面</div>
-        <div className="logo-sub">AI INTERVIEW SIM · MVP</div>
+        <div className="logo-sub">AI INTERVIEW SIM</div>
       </div>
 
       <nav>

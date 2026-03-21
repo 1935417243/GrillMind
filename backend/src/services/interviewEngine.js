@@ -55,14 +55,16 @@ export class InterviewEngine {
     this.depth        = typeof session.duration === 'string' ? session.duration : 'standard';
     this.stageFlow    = getStageFlow(this.depth);
 
-    // 从数据库查询岗位信息（scripts + name）
-    const jobPos = db.prepare('SELECT name, scripts FROM job_positions WHERE id = ?').get(session.job_type);
+    // 从数据库查询岗位信息（scripts + name + category）
+    const jobPos = db.prepare('SELECT name, scripts, category FROM job_positions WHERE id = ?').get(session.job_type);
     if (jobPos) {
       this.jobName   = jobPos.name;
       this.scripts   = JSON.parse(jobPos.scripts);
+      this.category  = jobPos.category || 'non-tech';
     } else {
       this.jobName   = session.job_type || '未知岗位';
       this.scripts   = { mixed: '', project: '', basic: '' };
+      this.category  = 'non-tech';
     }
   }
 
@@ -120,6 +122,7 @@ export class InterviewEngine {
       focus:          this.session.focus,
       stage:          this.stage,
       currentProject: this.getCurrentProject(),
+      category:       this.category,
     });
 
     // closing 阶段：将收尾指令直接注入用户消息，确保 AI 无法忽略
