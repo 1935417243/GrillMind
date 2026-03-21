@@ -1,4 +1,6 @@
 // 简历解析详情抽屉组件
+import { useState, useEffect } from 'react';
+import { jobPositionApi } from '../api/client';
 import './ResumeDrawer.css';
 
 /**
@@ -8,6 +10,17 @@ import './ResumeDrawer.css';
  * @param {Function} props.onClose - 关闭回调
  */
 export default function ResumeDrawer({ open, resume, onClose }) {
+  const [jobMap, setJobMap] = useState({});
+
+  // 加载岗位列表用于名称映射
+  useEffect(() => {
+    jobPositionApi.list().then(data => {
+      const map = {};
+      data.forEach(jp => { map[jp.id] = jp.name; });
+      setJobMap(map);
+    }).catch(() => {});
+  }, []);
+
   if (!resume) return null;
 
   const parsed = resume.parsed || {};
@@ -16,7 +29,7 @@ export default function ResumeDrawer({ open, resume, onClose }) {
   const baseInfo = [
     ['候选人', parsed.candidateName || resume.name?.replace(/\.[^.]+$/, '') || '未知'],
     ['工作年限', parsed.yearsOfExperience ? `${parsed.yearsOfExperience} 年` : '未知'],
-    ['岗位倾向', formatJobTendency(parsed.jobTendency)],
+    ['岗位倾向', formatJobTendency(parsed.jobTendency, jobMap)],
     ['技术栈', (parsed.techStack || []).join(' · ') || '未提取'],
   ];
 
@@ -121,15 +134,11 @@ export default function ResumeDrawer({ open, resume, onClose }) {
 }
 
 /**
- * 岗位倾向格式化
+ * 岗位倾向格式化 — 从岗位表查名称
  */
-function formatJobTendency(tendency) {
-  const map = {
-    backend: '后端工程师',
-    test: '软件测试工程师',
-    mixed: '综合',
-  };
-  return map[tendency] || tendency || '未识别';
+function formatJobTendency(tendency, jobMap = {}) {
+  if (!tendency) return '未识别';
+  return jobMap[tendency] || tendency;
 }
 
 /**
@@ -139,3 +148,4 @@ function formatDate(dateStr) {
   if (!dateStr) return '';
   return dateStr.split('T')[0] || dateStr.split(' ')[0] || dateStr;
 }
+

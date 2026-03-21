@@ -56,7 +56,13 @@ export async function parseResumeAsync(resumeId, filePath, originalName) {
 
     // AI 结构化解析
     const parseModel = getTaskModel('parse');
-    const messages = buildResumeParsePrompt(rawText);
+
+    // 查询已启用岗位列表，注入到 Prompt 中
+    const jobPositions = db.prepare(
+      'SELECT id, name, tags FROM job_positions WHERE enabled = 1 ORDER BY sort_order ASC'
+    ).all();
+
+    const messages = buildResumeParsePrompt(rawText, jobPositions);
 
     const aiResult = await chatCompletionWithRetry({
       providerModel: parseModel,
@@ -66,8 +72,11 @@ export async function parseResumeAsync(resumeId, filePath, originalName) {
     // 安全解析 JSON
     const parsed = safeParseAIJson(aiResult);
 
-    // 岗位类型直接取 AI 解析结果，后续扩展新岗位无需改动
-    const jobType = parsed.jobTendency || 'mixed';
+    // 验证 AI 返回的岗位 ID 是否有效，无效则降级为 null
+    const validIds = new Set(jobPositions.map(jp => jp.id));
+    const jobType = (parsed.jobTendency && validIds.has(parsed.jobTendency))
+      ? parsed.jobTendency
+      : null;
 
     // 写入数据库
     db.prepare(`

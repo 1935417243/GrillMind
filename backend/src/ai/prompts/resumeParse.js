@@ -4,9 +4,27 @@
 /**
  * 构建简历解析的 messages
  * @param {string} rawText - 简历原始文本
+ * @param {Array} jobPositions - 已启用的岗位列表 [{id, name, tags}]
  * @returns {Array} - OpenAI messages 数组
  */
-export function buildResumeParsePrompt(rawText) {
+export function buildResumeParsePrompt(rawText, jobPositions = []) {
+  // 动态生成 jobTendency 选项
+  const jobOptions = jobPositions.map(jp =>
+    `- "${jp.id}"：${jp.name}${jp.tags ? `（${jp.tags}）` : ''}`
+  ).join('\n');
+
+  // 如果没有配置任何岗位，提供一个 null 默认值
+  const jobTendencyDesc = jobPositions.length > 0
+    ? `【jobTendency】岗位倾向。优先取简历中明确写的求职意向/目标岗位，映射到以下最匹配的选项；未明确写出时根据项目经历和技术栈综合判断：
+${jobOptions}
+- null：无法匹配到任何已配置岗位`
+    : `【jobTendency】岗位倾向，当前系统未配置任何岗位，请固定输出 null`;
+
+  // 生成 jobTendency 类型定义
+  const jobTendencyType = jobPositions.length > 0
+    ? jobPositions.map(jp => `"${jp.id}"`).join(' | ') + ' | null'
+    : 'null';
+
   return [
     {
       role: 'system',
@@ -23,15 +41,7 @@ export function buildResumeParsePrompt(rawText) {
 - 若简历未明确写出年限，再根据工作经历起止时间推算，四舍五入到 0.5。
 - 仅有在校经历或无任何工作经历时输出 0。
 
-【jobTendency】岗位倾向。优先取简历中明确写的求职意向/目标岗位，映射到以下最匹配的选项；未明确写出时根据项目经历和技术栈综合判断：
-- "backend"：主要从事后端服务、API、数据库相关工作
-- "frontend"：主要从事 Web 前端、UI 组件、页面开发
-- "fullstack"：前后端均有明显实际经历
-- "test"：主要从事测试、QA、自动化测试
-- "data"：主要从事数据分析、数据工程、BI
-- "ai_ml"：主要从事机器学习、模型训练、AI 应用开发
-- "ops"：主要从事运维、SRE、DevOps
-- "mixed"：多个方向混杂，无法归类
+${jobTendencyDesc}
 
 【techStack】候选人掌握的技术栈列表，只列出简历中明确出现的，不要推断或补充。每项为一个简短名词（如 "Spring Boot"、"Redis"、"React"）。
 
@@ -54,7 +64,7 @@ export function buildResumeParsePrompt(rawText) {
 {
   "candidateName": string | null,
   "yearsOfExperience": number | null,
-  "jobTendency": "backend" | "frontend" | "fullstack" | "test" | "data" | "ai_ml" | "ops" | "mixed",
+  "jobTendency": ${jobTendencyType},
   "techStack": string[],
   "projects": [
     {
@@ -75,3 +85,4 @@ export function buildResumeParsePrompt(rawText) {
     }
   ];
 }
+

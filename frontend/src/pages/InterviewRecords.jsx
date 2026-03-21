@@ -62,8 +62,8 @@ export default function InterviewRecords() {
                 {record.startedAt?.split('T')[0]?.slice(5) || record.startedAt?.split(' ')[0]?.slice(5) || ''}
               </div>
               <div className="record-main">
-                <div className="record-name">
-                  {record.jobType === 'backend' ? '后端工程师' : '测试工程师'}
+                  <div className="record-name">
+                  {record.jobName || '未知岗位'}
                   {record.resumeName ? ` · ${record.resumeName}` : ''}
                 </div>
                 <div className="record-sub">
@@ -97,7 +97,7 @@ export default function InterviewRecords() {
             <div className="confirm-body">
               确定要删除这条面试记录吗？
               <div className="confirm-detail">
-                {deleteTarget.jobType === 'backend' ? '后端工程师' : '测试工程师'}
+                {deleteTarget.jobName || '未知岗位'}
                 {deleteTarget.resumeName ? ` · ${deleteTarget.resumeName}` : ''}
               </div>
               <div className="confirm-warn">删除后将无法恢复，关联的面试报告也会一并删除。</div>

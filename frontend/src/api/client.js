@@ -69,3 +69,14 @@ export const modelApi = {
   getBinding: () => request('/models/binding'),
   updateBinding: (data) => request('/models/binding', { method: 'PUT', body: JSON.stringify(data) }),
 };
+
+// ── 岗位管理 API ──
+export const jobPositionApi = {
+  list:   () => request('/job-positions'),
+  get:    (id) => request(`/job-positions/${id}`),
+  create: (data) => request('/job-positions', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => request(`/job-positions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => request(`/job-positions/${id}`, { method: 'DELETE' }),
+  toggle: (id) => request(`/job-positions/${id}/toggle`, { method: 'PUT' }),
+};
+

@@ -11,7 +11,8 @@ import { initDB } from './db/index.js';
 import modelRoutes     from './routes/model.js';
 import resumeRoutes    from './routes/resume.js';
 import interviewRoutes from './routes/interview.js';
-import reportRoutes    from './routes/report.js';
+import reportRoutes      from './routes/report.js';
+import jobPositionRoutes from './routes/jobPosition.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -51,6 +52,7 @@ await fastify.register(modelRoutes);
 await fastify.register(resumeRoutes);
 await fastify.register(interviewRoutes);
 await fastify.register(reportRoutes);
+await fastify.register(jobPositionRoutes);
 
 // 启动服务
 const PORT = process.env.PORT || 3001;

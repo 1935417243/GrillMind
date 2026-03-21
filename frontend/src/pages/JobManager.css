@@ -1,0 +1,228 @@
+/* 岗位管理页面样式 */
+
+/* ── 岗位列表行 ── */
+.job-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+  gap: 16px;
+  position: relative;
+}
+.job-item:hover { border-color: var(--border-strong); }
+
+.job-order {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.job-main { flex: 1; min-width: 0; }
+.job-name { font-size: 13px; font-weight: 500; }
+.job-tags {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-stats {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 60px;
+}
+
+/* ── 操作按钮 ── */
+.job-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.job-action-btn {
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: 'Noto Sans SC', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.job-action-btn:hover {
+  background: var(--bg);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+.job-action-btn.danger:hover {
+  background: var(--warn-light);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+/* ── 新增/编辑弹窗 ── */
+.job-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(26, 25, 23, 0.35);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: overlayIn 0.15s ease-out;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.job-form-dialog {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 28px;
+  width: 560px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  animation: dialogIn 0.2s ease-out;
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.job-form-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 18px;
+}
+
+.job-form-field {
+  margin-bottom: 14px;
+}
+
+.job-form-field .form-label {
+  margin-bottom: 5px;
+  display: block;
+}
+
+.job-form-field .form-input {
+  width: 100%;
+}
+
+/* 考察脚本 Tab */
+.script-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.script-tab {
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: 'Noto Sans SC', sans-serif;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.script-tab:hover { color: var(--text-primary); }
+.script-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
+}
+
+.script-textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-primary);
+  line-height: 1.7;
+  outline: none;
+  resize: vertical;
+}
+.script-textarea:focus { border-color: var(--accent-dim); }
+
+/* 启用开关 */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+}
+.toggle-switch input { display: none; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border-strong);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--accent);
+}
+.toggle-switch input:checked + .toggle-slider::after {
+  transform: translateX(16px);
+}
+
+.toggle-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* 底部按钮 */
+.job-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}

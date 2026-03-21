@@ -93,7 +93,7 @@ export default function InterviewRoom() {
       <div className="topbar">
         <span className="topbar-title">面试进行中</span>
         <span className="topbar-meta">
-          {sessionInfo?.job_type === 'backend' ? '后端工程师' : '测试工程师'}
+          {sessionInfo?.jobName || ''}
           {sessionInfo?.resumeName ? ` · ${sessionInfo.resumeName}` : ''}
         </span>
       </div>

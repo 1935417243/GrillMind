@@ -38,12 +38,16 @@ export async function generateReportAsync(sessionId) {
     const messages = JSON.parse(session.messages);
     const parsed   = JSON.parse(resume.parsed);
 
+    // 查询岗位名称
+    const jobPos = db.prepare('SELECT name FROM job_positions WHERE id = ?').get(session.job_type);
+    const jobName = jobPos ? jobPos.name : (session.job_type || '未知岗位');
+
     // 构建 prompt 并调用 AI（非流式）
     const reportModel = getTaskModel('report');
     const promptMessages = buildReportPrompt({
       messages,
       parsed,
-      jobType: session.job_type,
+      jobName,
     });
 
     const aiResult = await chatCompletionWithRetry({

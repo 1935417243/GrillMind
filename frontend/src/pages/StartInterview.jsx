@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppState, useAppDispatch } from '../store/AppContext';
-import { sessionApi, modelApi, resumeApi } from '../api/client';
+import { sessionApi, modelApi, resumeApi, jobPositionApi } from '../api/client';
 import CustomSelect from '../components/CustomSelect';
 import './StartInterview.css';
 
@@ -25,24 +25,33 @@ export default function StartInterview() {
       });
     }
   }, [activeResume, dispatch]);
-  const [jobType,    setJobType]    = useState('backend');
+  const [jobType,    setJobType]    = useState('');
   const [depth,      setDepth]      = useState('standard');
   const [difficulty, setDifficulty] = useState('pressure');
   const [focus,      setFocus]      = useState('mixed');
   const [binding,    setBinding]    = useState(null);
   const [starting,   setStarting]   = useState(false);
+  const [jobList,    setJobList]    = useState([]);  // 已启用岗位列表
 
-  // 加载模型绑定
+  // 加载模型绑定 + 岗位列表
   useEffect(() => {
     modelApi.getBinding().then(setBinding).catch(() => {});
+    jobPositionApi.list().then(data => {
+      const enabled = data.filter(p => p.enabled);
+      setJobList(enabled);
+      // 默认选中第一个
+      if (enabled.length > 0 && !jobType) {
+        setJobType(enabled[0].id);
+      }
+    }).catch(() => {});
   }, []);
 
-  // 简历解析结果推荐岗位
+  // 简历解析结果推荐岗位（job_type 现在存的是岗位 ID）
   useEffect(() => {
-    if (activeResume?.jobType) {
+    if (activeResume?.jobType && jobList.some(j => j.id === activeResume.jobType)) {
       setJobType(activeResume.jobType);
     }
-  }, [activeResume]);
+  }, [activeResume, jobList]);
 
   const handleStart = async () => {
     if (!activeResume || starting) return;
@@ -66,6 +75,7 @@ export default function StartInterview() {
   const difficultyMap = { normal: '普通', pressure: '有压力', high: '高压' };
   const focusMap      = { mixed: '综合', project: '项目深挖', basic: '基础能力' };
   const depthMap      = { quick: '快速面试', standard: '标准面试', deep: '深度面试' };
+  const currentJob    = jobList.find(j => j.id === jobType);
 
   return (
     <div className="main">
@@ -104,20 +114,21 @@ export default function StartInterview() {
           <div className="card-label">岗位类型</div>
           <div style={{fontSize:'12px',color:'var(--text-muted)',marginBottom:'10px'}}>系统已从简历识别推荐，可手动切换</div>
           <div className="role-selector">
-            <div
-              className={`role-option ${jobType === 'backend' ? 'selected' : ''}`}
-              onClick={() => setJobType('backend')}
-            >
-              <div className="role-title">后端工程师</div>
-              <div className="role-desc">项目架构 · 数据库 · 并发</div>
-            </div>
-            <div
-              className={`role-option ${jobType === 'test' ? 'selected' : ''}`}
-              onClick={() => setJobType('test')}
-            >
-              <div className="role-title">软件测试工程师</div>
-              <div className="role-desc">测试策略 · 用例设计 · 自动化</div>
-            </div>
+            {jobList.map(job => (
+              <div
+                key={job.id}
+                className={`role-option ${jobType === job.id ? 'selected' : ''}`}
+                onClick={() => setJobType(job.id)}
+              >
+                <div className="role-title">{job.name}</div>
+                <div className="role-desc">{job.tags || ''}</div>
+              </div>
+            ))}
+            {jobList.length === 0 && (
+              <div style={{color:'var(--text-muted)', fontSize:'12px', padding:'8px 0'}}>
+                暂无已启用的岗位，请先在 <a href="/jobs" style={{color:'var(--accent)'}}>岗位管理</a> 中配置
+              </div>
+            )}
           </div>
         </div>
 
@@ -197,7 +208,7 @@ export default function StartInterview() {
             {starting ? '创建中...' : '开始面试'}
           </button>
           <span className="start-hint">
-            {depthMap[depth]} · {jobType === 'backend' ? '后端工程师' : '测试工程师'} · {difficultyMap[difficulty]}
+            {depthMap[depth]} · {currentJob?.name || '未选择岗位'} · {difficultyMap[difficulty]}
           </span>
         </div>
 

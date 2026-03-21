@@ -28,10 +28,10 @@ export function extractQAPairs(messages) {
  * @param {object} params
  * @param {Array} params.messages - 面试消息列表
  * @param {object} params.parsed - 简历解析结果
- * @param {string} params.jobType - 岗位类型
+ * @param {string} params.jobName - 岗位名称（如"后端工程师"）
  * @returns {Array} - OpenAI messages 数组
  */
-export function buildReportPrompt({ messages, parsed, jobType }) {
+export function buildReportPrompt({ messages, parsed, jobName }) {
   const qaList = extractQAPairs(messages);
 
   return [
@@ -72,7 +72,7 @@ export function buildReportPrompt({ messages, parsed, jobType }) {
     },
     {
       role: 'user',
-      content: `岗位：${jobType === 'backend' ? '后端工程师' : '软件测试工程师'}
+      content: `岗位：${jobName}
 年限：${parsed.yearsOfExperience} 年
 
 面试记录：

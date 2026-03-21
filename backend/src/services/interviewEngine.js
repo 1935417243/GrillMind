@@ -54,6 +54,16 @@ export class InterviewEngine {
     // 从 duration 字段读取 depth 值，兼容旧数据
     this.depth        = typeof session.duration === 'string' ? session.duration : 'standard';
     this.stageFlow    = getStageFlow(this.depth);
+
+    // 从数据库查询岗位信息（scripts + name）
+    const jobPos = db.prepare('SELECT name, scripts FROM job_positions WHERE id = ?').get(session.job_type);
+    if (jobPos) {
+      this.jobName   = jobPos.name;
+      this.scripts   = JSON.parse(jobPos.scripts);
+    } else {
+      this.jobName   = session.job_type || '未知岗位';
+      this.scripts   = { mixed: '', project: '', basic: '' };
+    }
   }
 
   /**
@@ -103,7 +113,8 @@ export class InterviewEngine {
    */
   buildAIMessages(userContent) {
     const systemPrompt = buildInterviewSystemPrompt({
-      jobType:        this.session.job_type,
+      jobName:        this.jobName,
+      scripts:        this.scripts,
       parsed:         this.parsed,
       difficulty:     this.session.difficulty,
       focus:          this.session.focus,

@@ -63,3 +63,14 @@ CREATE TABLE IF NOT EXISTS interview_reports (
   created_at    TEXT DEFAULT (datetime('now', '+8 hours')),
   FOREIGN KEY (session_id) REFERENCES interview_sessions(id)
 );
+
+-- 岗位定义
+CREATE TABLE IF NOT EXISTS job_positions (
+  id           TEXT PRIMARY KEY,           -- UUID
+  name         TEXT NOT NULL UNIQUE,       -- 岗位名称（如"后端工程师"）
+  tags         TEXT,                       -- 岗位标签（如"项目架构 · 数据库 · 并发"）
+  scripts      TEXT NOT NULL,              -- JSON: { mixed, project, basic } 三套考察脚本
+  enabled      INTEGER DEFAULT 1,          -- 是否启用
+  sort_order   INTEGER DEFAULT 0,          -- 排序权重（小的在前）
+  created_at   TEXT DEFAULT (datetime('now', '+8 hours'))
+);

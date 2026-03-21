@@ -68,9 +68,13 @@ export default async function resumeRoutes(fastify) {
 
   // 获取简历列表
   fastify.get('/api/v1/resumes', async (req, reply) => {
-    const rows = db.prepare(
-      'SELECT id, name, job_type, is_active, parse_status, created_at FROM resumes ORDER BY created_at DESC'
-    ).all();
+    const rows = db.prepare(`
+      SELECT r.id, r.name, r.job_type, r.is_active, r.parse_status, r.created_at,
+             jp.name as job_name
+      FROM resumes r
+      LEFT JOIN job_positions jp ON r.job_type = jp.id
+      ORDER BY r.created_at DESC
+    `).all();
 
     const resumes = rows.map(row => {
       // 尝试解析 parsed 获取技术栈等信息
@@ -83,6 +87,7 @@ export default async function resumeRoutes(fastify) {
         id: row.id,
         name: row.name,
         jobType: row.job_type,
+        jobName: row.job_name || null,
         isActive: !!row.is_active,
         parseStatus: row.parse_status,
         createdAt: row.created_at,

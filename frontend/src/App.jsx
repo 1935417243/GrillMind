@@ -9,6 +9,7 @@ import InterviewRoom from './pages/InterviewRoom';
 import InterviewReport from './pages/InterviewReport';
 import InterviewRecords from './pages/InterviewRecords';
 import ModelSettings from './pages/ModelSettings';
+import JobManager from './pages/JobManager';
 import './styles/variables.css';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/report/:sessionId" element={<InterviewReport />} />
             <Route path="/records" element={<InterviewRecords />} />
             <Route path="/settings" element={<ModelSettings />} />
+            <Route path="/jobs" element={<JobManager />} />
           </Routes>
         </AppProvider>
       </ToastProvider>

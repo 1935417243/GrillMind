@@ -36,6 +36,14 @@ export default function Sidebar() {
           </svg>
           简历管理
         </NavLink>
+        <NavLink to="/jobs" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <svg className="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="1.5" y="4.5" width="13" height="9" rx="1.5"/>
+            <path d="M5.5 4.5V3a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 10.5 3v1.5"/>
+            <line x1="1.5" y1="8.5" x2="14.5" y2="8.5"/>
+          </svg>
+          岗位管理
+        </NavLink>
         <NavLink to="/records" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <svg className="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
             <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>

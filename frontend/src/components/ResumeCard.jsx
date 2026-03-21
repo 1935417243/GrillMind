@@ -33,8 +33,8 @@ export default function ResumeCard({ resume, onActivate, onDelete, onView, onRep
           <div className="resume-title">{resume.name}</div>
           <div className="resume-detail">
             {resume.yearsOfExperience ? `${resume.yearsOfExperience}年经验 · ` : ''}
-            {resume.jobType === 'backend' ? '后端工程师' : resume.jobType === 'test' ? '测试工程师' : ''}
-            {resume.jobType ? ' · ' : ''}
+            {resume.jobName || ''}
+            {resume.jobName ? ' · ' : ''}
             上传于 {resume.createdAt?.split('T')[0] || resume.createdAt?.split(' ')[0]}
           </div>
           {visibleTech.length > 0 && (

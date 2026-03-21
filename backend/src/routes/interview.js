@@ -31,6 +31,18 @@ export default async function interviewRoutes(fastify) {
       });
     }
 
+    // 验证岗位存在且已启用
+    const finalJobType = jobType || resume.job_type;
+    if (finalJobType) {
+      const jobPos = db.prepare('SELECT id, enabled FROM job_positions WHERE id = ?').get(finalJobType);
+      if (jobPos && !jobPos.enabled) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: 'POSITION_DISABLED', message: '该岗位已被禁用' },
+        });
+      }
+    }
+
     const id = uuidv4();
 
     // 根据深度和侧重点动态生成开场白
@@ -64,7 +76,7 @@ export default async function interviewRoutes(fastify) {
     `).run(
       id,
       resumeId,
-      jobType || resume.job_type || 'backend',
+      finalJobType || null,
       depthValue,
       difficulty || 'pressure',
       focus || 'mixed',
@@ -87,10 +99,12 @@ export default async function interviewRoutes(fastify) {
       SELECT s.id, s.resume_id, s.job_type, s.duration, s.difficulty, s.status,
              s.started_at, s.ended_at, s.report_id,
              r.name as resume_name,
-             rp.overall_score
+             rp.overall_score,
+             jp.name as job_name
       FROM interview_sessions s
       LEFT JOIN resumes r ON s.resume_id = r.id
       LEFT JOIN interview_reports rp ON s.report_id = rp.id
+      LEFT JOIN job_positions jp ON s.job_type = jp.id
       ORDER BY s.started_at DESC
     `).all();
 
@@ -105,10 +119,14 @@ export default async function interviewRoutes(fastify) {
         }
       } catch {}
 
+      // 岗位名称
+      const jobName = row.job_name || row.job_type || '未知岗位';
+
       return {
         id: row.id,
         resumeName: row.resume_name,
         jobType: row.job_type,
+        jobName,
         depth: row.duration,
         difficulty: row.difficulty,
         status: row.status,
@@ -136,6 +154,7 @@ export default async function interviewRoutes(fastify) {
     }
 
     const resume = db.prepare('SELECT * FROM resumes WHERE id = ?').get(session.resume_id);
+    const jobPos = db.prepare('SELECT name FROM job_positions WHERE id = ?').get(session.job_type);
 
     return {
       success: true,
@@ -144,6 +163,7 @@ export default async function interviewRoutes(fastify) {
         messages: JSON.parse(session.messages),
         resumeName: resume?.name,
         parsed: resume?.parsed ? JSON.parse(resume.parsed) : null,
+        jobName: jobPos?.name || session.job_type || '未知岗位',
       },
     };
   });
