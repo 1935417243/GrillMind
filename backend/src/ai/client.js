@@ -50,6 +50,7 @@ export function getTaskModel(task) {
     parse:     binding?.parse_model,
     interview: binding?.interview_model,
     report:    binding?.report_model || binding?.interview_model,
+    base:      binding?.base_model,
   };
 
   if (!map[task]) throw new Error(`Task model for "${task}" not bound`);

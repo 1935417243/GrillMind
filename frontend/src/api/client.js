@@ -78,5 +78,6 @@ export const jobPositionApi = {
   update: (id, data) => request(`/job-positions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) => request(`/job-positions/${id}`, { method: 'DELETE' }),
   toggle: (id) => request(`/job-positions/${id}/toggle`, { method: 'PUT' }),
+  generate: (jobName) => request('/job-positions/generate', { method: 'POST', body: JSON.stringify({ jobName }) }),
 };
 

@@ -226,3 +226,39 @@
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
+
+/* ── AI 一键生成按钮 ── */
+.ai-gen-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ai-gen-btn {
+  height: 26px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 4px;
+  background: #2d5a27;
+  color: #fff;
+  font-size: 12px;
+  font-family: 'Noto Sans SC', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.ai-gen-btn:hover:not(:disabled) {
+  background: #367030;
+}
+.ai-gen-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.ai-gen-error {
+  font-size: 11px;
+  color: var(--warn);
+  white-space: nowrap;
+}

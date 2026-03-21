@@ -11,6 +11,8 @@ export default function JobManager() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [toggleTarget, setToggleTarget] = useState(null);  // 启用/禁用确认
   const [saving, setSaving]       = useState(false);
+  const [generating, setGenerating] = useState(false);     // AI 生成中
+  const [genError, setGenError]     = useState('');
 
   // 表单数据
   const [formName, setFormName]         = useState('');
@@ -41,6 +43,8 @@ export default function JobManager() {
     setFormEnabled(true);
     setActiveTab('mixed');
     setFormError('');
+    setGenerating(false);
+    setGenError('');
     setFormOpen(true);
   };
 
@@ -54,6 +58,8 @@ export default function JobManager() {
     setFormEnabled(pos.enabled);
     setActiveTab('mixed');
     setFormError('');
+    setGenerating(false);
+    setGenError('');
     setFormOpen(true);
   };
 
@@ -117,6 +123,26 @@ export default function JobManager() {
       alert(err.message || '删除失败');
     }
     setDeleteTarget(null);
+  };
+
+  // AI 一键生成标签与考察脚本
+  const handleGenerate = async () => {
+    if (!formName.trim() || generating) return;
+    setGenerating(true);
+    setGenError('');
+    try {
+      const data = await jobPositionApi.generate(formName.trim());
+      setFormTags(data.tags || '');
+      setFormScripts({
+        mixed:   data.scripts?.mixed || '',
+        project: data.scripts?.project || '',
+        basic:   data.scripts?.basic || '',
+      });
+    } catch (err) {
+      setGenError(err.message || '生成失败，请重试');
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const tabLabels = { mixed: '综合考察', project: '项目深挖', basic: '基础能力' };
@@ -184,6 +210,19 @@ export default function JobManager() {
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="如 前端工程师"
               />
+              {/* AI 一键生成按钮 */}
+              {formName.trim() && (
+                <div className="ai-gen-row">
+                  <button
+                    className="ai-gen-btn"
+                    disabled={generating}
+                    onClick={handleGenerate}
+                  >
+                    {generating ? '生成中…' : '✦ 一键生成标签与考察脚本'}
+                  </button>
+                  {genError && <span className="ai-gen-error">{genError}</span>}
+                </div>
+              )}
             </div>
 
             {/* 岗位标签 */}

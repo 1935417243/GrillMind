@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS task_model_binding (
   id              TEXT PRIMARY KEY DEFAULT 'singleton',
   parse_model     TEXT,   -- 'deepseek::deepseek-reasoner'
   interview_model TEXT,
-  report_model    TEXT    -- null 表示复用 interview_model
+  report_model    TEXT,   -- null 表示复用 interview_model
+  base_model      TEXT    -- 通用辅助模型（如 AI 生成岗位等）
 );
 
 -- 面试会话

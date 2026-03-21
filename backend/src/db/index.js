@@ -42,6 +42,13 @@ function initDB() {
     ).run('singleton');
   }
 
+  // 迁移：为 task_model_binding 添加 base_model 列（已有则忽略）
+  try {
+    db.exec('ALTER TABLE task_model_binding ADD COLUMN base_model TEXT');
+  } catch {
+    // 列已存在，忽略
+  }
+
   // 内置岗位种子数据（使用固定 UUID + INSERT OR IGNORE 保证幂等）
   const seedPositions = [
     {

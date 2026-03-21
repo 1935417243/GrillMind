@@ -19,7 +19,7 @@ export default function ModelSettings() {
   const [testStatus, setTestStatus] = useState({});
 
   // 任务绑定
-  const [binding, setBinding] = useState({ parseModel: '', interviewModel: '', reportModel: '' });
+  const [binding, setBinding] = useState({ parseModel: '', interviewModel: '', reportModel: '', baseModel: '' });
 
   // 加载数据
   useEffect(() => {
@@ -29,6 +29,7 @@ export default function ModelSettings() {
         parseModel: data.parseModel || '',
         interviewModel: data.interviewModel || '',
         reportModel: data.reportModel || '',
+        baseModel: data.baseModel || '',
       });
     }).catch(() => {});
   }, []);
@@ -228,7 +229,7 @@ export default function ModelSettings() {
               onChange={v => setBinding(prev => ({ ...prev, interviewModel: v }))}
             />
           </div>
-          <div className="binding-row" style={{borderBottom:'none'}}>
+          <div className="binding-row">
             <span className="binding-label">
               报告生成模型
               <span className="binding-hint">可复用对话模型</span>
@@ -237,6 +238,17 @@ export default function ModelSettings() {
               providers={dropdownProviders}
               value={binding.reportModel}
               onChange={v => setBinding(prev => ({ ...prev, reportModel: v }))}
+            />
+          </div>
+          <div className="binding-row" style={{borderBottom:'none'}}>
+            <span className="binding-label">
+              基础模型
+              <span className="binding-hint">通用辅助，如 AI 生成岗位等</span>
+            </span>
+            <ModelDropdown
+              providers={dropdownProviders}
+              value={binding.baseModel}
+              onChange={v => setBinding(prev => ({ ...prev, baseModel: v }))}
             />
           </div>
           <div style={{marginTop:'12px'}}>

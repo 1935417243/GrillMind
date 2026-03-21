@@ -1,6 +1,7 @@
 // 岗位管理路由
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/index.js';
+import { getTaskModel, chatCompletionWithRetry } from '../ai/client.js';
 
 /**
  * 注册岗位管理相关路由
@@ -22,13 +23,13 @@ export default async function jobPositionRoutes(fastify) {
     return {
       success: true,
       data: rows.map(row => ({
-        id:        row.id,
-        name:      row.name,
-        tags:      row.tags,
-        scripts:   JSON.parse(row.scripts),
-        enabled:   !!row.enabled,
+        id: row.id,
+        name: row.name,
+        tags: row.tags,
+        scripts: JSON.parse(row.scripts),
+        enabled: !!row.enabled,
         sortOrder: row.sort_order,
-        useCount:  row.use_count,
+        useCount: row.use_count,
         createdAt: row.created_at,
       })),
     };
@@ -47,11 +48,11 @@ export default async function jobPositionRoutes(fastify) {
     return {
       success: true,
       data: {
-        id:        row.id,
-        name:      row.name,
-        tags:      row.tags,
-        scripts:   JSON.parse(row.scripts),
-        enabled:   !!row.enabled,
+        id: row.id,
+        name: row.name,
+        tags: row.tags,
+        scripts: JSON.parse(row.scripts),
+        enabled: !!row.enabled,
         sortOrder: row.sort_order,
         createdAt: row.created_at,
       },
@@ -199,5 +200,89 @@ export default async function jobPositionRoutes(fastify) {
       success: true,
       data: { enabled: !!newEnabled },
     };
+  });
+
+  // AI 一键生成岗位标签与考察脚本
+  fastify.post('/api/v1/job-positions/generate', async (req, reply) => {
+    const { jobName } = req.body;
+
+    if (!jobName || !jobName.trim()) {
+      return reply.code(400).send({
+        success: false,
+        error: { code: 'NAME_REQUIRED', message: '岗位名称不能为空' },
+      });
+    }
+
+    // 获取基础模型绑定
+    let providerModel;
+    try {
+      providerModel = getTaskModel('base');
+    } catch {
+      return reply.code(400).send({
+        success: false,
+        error: { code: 'MODEL_NOT_BOUND', message: '请先在模型设置中绑定基础模型' },
+      });
+    }
+
+    const prompt = `你是一位经验丰富的人力资源专家，擅长为各类岗位设计面试考察方案。
+请根据岗位名称"${jobName.trim()}"，生成该岗位的标签和三套面试考察脚本。
+
+注意：
+- 请先判断这是什么类型的岗位（技术类、服务类、管理类、销售类、创意类等）
+- 根据岗位实际特点设计考察内容，不要套用技术岗模板
+- 考察点要贴近该岗位日常工作场景，接地气、有针对性
+
+生成规则：
+1. tags：3 个该岗位核心能力关键词，用 " · " 分隔
+2. mixed（综合考察）：综合评估候选人的经验与综合素质，6-8 条
+3. project（实操深挖）：深入了解候选人处理实际工作场景的能力，6-8 条  
+4. basic（基础能力）：考察该岗位所需的基本素养与核心能力，6-8 条
+
+每条格式为"- 考察方向：具体问题点1、问题点2、问题点3"，每行一条。
+
+请严格返回以下 JSON 格式，不要添加任何其他文字：
+{
+  "tags": "标签1 · 标签2 · 标签3",
+  "mixed": "- 方向A：考察点1、考察点2\\n- 方向B：考察点3、考察点4",
+  "project": "- 方向A：考察点1、考察点2\\n- 方向B：考察点3、考察点4",
+  "basic": "- 方向A：考察点1、考察点2\\n- 方向B：考察点3、考察点4"
+}`;
+
+    try {
+      const content = await chatCompletionWithRetry({
+        providerModel,
+        messages: [{ role: 'user', content: prompt }],
+      });
+
+      // 从返回内容中提取 JSON（兼容 markdown 代码块包裹）
+      let jsonStr = content;
+      const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1].trim();
+      } else {
+        // 尝试提取第一个 { ... } 块
+        const braceMatch = content.match(/\{[\s\S]*\}/);
+        if (braceMatch) jsonStr = braceMatch[0];
+      }
+
+      const result = JSON.parse(jsonStr);
+
+      return {
+        success: true,
+        data: {
+          tags: result.tags || '',
+          scripts: {
+            mixed: result.mixed || '',
+            project: result.project || '',
+            basic: result.basic || '',
+          },
+        },
+      };
+    } catch (err) {
+      return reply.code(500).send({
+        success: false,
+        error: { code: 'GENERATE_FAILED', message: err.message || '生成失败' },
+      });
+    }
   });
 }

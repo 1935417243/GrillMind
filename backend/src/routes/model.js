@@ -51,14 +51,15 @@ export default async function modelRoutes(fastify) {
         parseModel: binding?.parse_model,
         interviewModel: binding?.interview_model,
         reportModel: binding?.report_model,
+        baseModel: binding?.base_model,
       },
     };
   });
 
   // 更新任务模型绑定
   fastify.put('/api/v1/models/binding', async (req, reply) => {
-    const { parseModel, interviewModel, reportModel } = req.body;
-    updateModelBinding({ parseModel, interviewModel, reportModel });
-    return { success: true, data: { parseModel, interviewModel, reportModel } };
+    const { parseModel, interviewModel, reportModel, baseModel } = req.body;
+    updateModelBinding({ parseModel, interviewModel, reportModel, baseModel });
+    return { success: true, data: { parseModel, interviewModel, reportModel, baseModel } };
   });
 }

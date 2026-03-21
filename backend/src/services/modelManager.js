@@ -123,12 +123,12 @@ export function getModelBinding() {
 
 /**
  * 更新任务模型绑定
- * @param {object} binding - { parseModel, interviewModel, reportModel }
+ * @param {object} binding - { parseModel, interviewModel, reportModel, baseModel }
  */
-export function updateModelBinding({ parseModel, interviewModel, reportModel }) {
+export function updateModelBinding({ parseModel, interviewModel, reportModel, baseModel }) {
   db.prepare(`
     UPDATE task_model_binding
-    SET parse_model = ?, interview_model = ?, report_model = ?
+    SET parse_model = ?, interview_model = ?, report_model = ?, base_model = ?
     WHERE id = 'singleton'
-  `).run(parseModel, interviewModel, reportModel || null);
+  `).run(parseModel, interviewModel, reportModel || null, baseModel || null);
 }
