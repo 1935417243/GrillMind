@@ -291,7 +291,7 @@ export default function ModelSettings() {
         <div className="card-label" style={{marginBottom:'8px'}}>任务模型分配</div>
         <div className="thinking-tip">
           <span className="thinking-tip-icon">💡</span>
-          深度思考模式会增加响应时间，建议仅对质量要求高的任务启用
+          深度思考模式会增加响应时间，建议仅对简历解析/报告生成启用
         </div>
         <div className="card">
           <div className="binding-row">
