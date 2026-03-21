@@ -26,6 +26,7 @@ export default async function jobPositionRoutes(fastify) {
         id: row.id,
         name: row.name,
         tags: row.tags,
+        category: row.category || 'non-tech',
         scripts: JSON.parse(row.scripts),
         enabled: !!row.enabled,
         sortOrder: row.sort_order,
@@ -51,6 +52,7 @@ export default async function jobPositionRoutes(fastify) {
         id: row.id,
         name: row.name,
         tags: row.tags,
+        category: row.category || 'non-tech',
         scripts: JSON.parse(row.scripts),
         enabled: !!row.enabled,
         sortOrder: row.sort_order,
@@ -61,7 +63,7 @@ export default async function jobPositionRoutes(fastify) {
 
   // 新增岗位
   fastify.post('/api/v1/job-positions', async (req, reply) => {
-    const { name, tags, scripts, enabled, sortOrder } = req.body;
+    const { name, tags, category, scripts, enabled, sortOrder } = req.body;
 
     if (!name || !name.trim()) {
       return reply.code(400).send({
@@ -89,12 +91,13 @@ export default async function jobPositionRoutes(fastify) {
 
     const id = uuidv4();
     db.prepare(`
-      INSERT INTO job_positions (id, name, tags, scripts, enabled, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO job_positions (id, name, tags, category, scripts, enabled, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       name.trim(),
       tags || '',
+      category === 'tech' ? 'tech' : 'non-tech',
       JSON.stringify(scripts),
       enabled !== false ? 1 : 0,
       sortOrder ?? 0,
@@ -116,7 +119,7 @@ export default async function jobPositionRoutes(fastify) {
       });
     }
 
-    const { name, tags, scripts, enabled, sortOrder } = req.body;
+    const { name, tags, category, scripts, enabled, sortOrder } = req.body;
 
     if (!name || !name.trim()) {
       return reply.code(400).send({
@@ -143,11 +146,12 @@ export default async function jobPositionRoutes(fastify) {
 
     db.prepare(`
       UPDATE job_positions
-      SET name = ?, tags = ?, scripts = ?, enabled = ?, sort_order = ?
+      SET name = ?, tags = ?, category = ?, scripts = ?, enabled = ?, sort_order = ?
       WHERE id = ?
     `).run(
       name.trim(),
       tags || '',
+      category === 'tech' ? 'tech' : 'non-tech',
       JSON.stringify(scripts),
       enabled !== false ? 1 : 0,
       sortOrder ?? row.sort_order,

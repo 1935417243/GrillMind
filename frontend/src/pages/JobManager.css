@@ -217,6 +217,62 @@
   color: var(--text-secondary);
 }
 
+/* ── 岗位类型 Radio ── */
+.category-radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.category-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+.category-radio input[type="radio"] {
+  display: none;
+}
+.category-radio-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  position: relative;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+}
+.category-radio-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.15s;
+}
+.category-radio.active .category-radio-dot {
+  border-color: var(--accent);
+}
+.category-radio.active .category-radio-dot::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+.category-radio.active {
+  color: var(--text-primary);
+}
+.category-radio:hover {
+  color: var(--text-primary);
+}
+.category-radio:hover .category-radio-dot {
+  border-color: var(--accent-dim);
+}
+
 /* 底部按钮 */
 .job-form-actions {
   display: flex;

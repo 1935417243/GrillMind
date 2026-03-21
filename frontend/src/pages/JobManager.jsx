@@ -16,6 +16,7 @@ export default function JobManager() {
 
   // 表单数据
   const [formName, setFormName]         = useState('');
+  const [formCategory, setFormCategory] = useState('non-tech');
   const [formTags, setFormTags]         = useState('');
   const [formScripts, setFormScripts]   = useState({ mixed: '', project: '', basic: '' });
   const [formSortOrder, setFormSortOrder] = useState(0);
@@ -37,6 +38,7 @@ export default function JobManager() {
   const openCreate = () => {
     setEditing(null);
     setFormName('');
+    setFormCategory('non-tech');
     setFormTags('');
     setFormScripts({ mixed: '', project: '', basic: '' });
     setFormSortOrder(0);
@@ -52,6 +54,7 @@ export default function JobManager() {
   const openEdit = (pos) => {
     setEditing(pos);
     setFormName(pos.name);
+    setFormCategory(pos.category || 'non-tech');
     setFormTags(pos.tags || '');
     setFormScripts({ ...pos.scripts });
     setFormSortOrder(pos.sortOrder);
@@ -81,6 +84,7 @@ export default function JobManager() {
       const payload = {
         name: formName.trim(),
         tags: formTags.trim(),
+        category: formCategory,
         scripts: formScripts,
         sortOrder: formSortOrder,
         enabled: formEnabled,
@@ -223,6 +227,35 @@ export default function JobManager() {
                   {genError && <span className="ai-gen-error">{genError}</span>}
                 </div>
               )}
+            </div>
+
+            {/* 岗位类型 */}
+            <div className="job-form-field">
+              <div className="form-label">岗位类型</div>
+              <div className="category-radio-group">
+                <label className={`category-radio${formCategory === 'tech' ? ' active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="category"
+                    value="tech"
+                    checked={formCategory === 'tech'}
+                    onChange={() => setFormCategory('tech')}
+                  />
+                  <span className="category-radio-dot" />
+                  技术岗
+                </label>
+                <label className={`category-radio${formCategory === 'non-tech' ? ' active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="category"
+                    value="non-tech"
+                    checked={formCategory === 'non-tech'}
+                    onChange={() => setFormCategory('non-tech')}
+                  />
+                  <span className="category-radio-dot" />
+                  非技术岗
+                </label>
+              </div>
             </div>
 
             {/* 岗位标签 */}
