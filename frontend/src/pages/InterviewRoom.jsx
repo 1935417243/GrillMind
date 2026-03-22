@@ -125,8 +125,23 @@ export default function InterviewRoom() {
           {voiceMode ? (
             <VoiceCall
               sessionId={id}
-              onHangup={() => setVoiceMode(false)}
-              onSwitchText={() => setVoiceMode(false)}
+              initialMessages={messages}
+              onHangup={() => {
+                setVoiceMode(false);
+                // 重新拉取会话数据，同步语音模式中产生的聊天记录
+                sessionApi.get(id).then(data => {
+                  setSessionInfo(data);
+                  loadMessages(data.messages, data.stage);
+                });
+              }}
+              onSwitchText={() => {
+                setVoiceMode(false);
+                // 重新拉取会话数据，同步语音模式中产生的聊天记录
+                sessionApi.get(id).then(data => {
+                  setSessionInfo(data);
+                  loadMessages(data.messages, data.stage);
+                });
+              }}
             />
           ) : (
             <>

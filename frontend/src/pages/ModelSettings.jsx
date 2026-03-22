@@ -347,7 +347,7 @@ export default function ModelSettings() {
           <div className="binding-row">
             <span className="binding-label" style={{flex:1}}>
               报告生成模型
-              <span className="binding-hint">可复用对话模型</span>
+              <span className="binding-hint">可复用解析模型</span>
             </span>
             <div className="binding-row-right">
               <ThinkingToggle taskKey="reportModel" thinkingKey="reportThinking" modelValue={binding.reportModel} />

@@ -205,6 +205,13 @@ export class VoiceSession {
       // 1. 构建 AI 消息（注意：buildAIMessages 内部会追加用户消息，
       //    不要先调 appendMessage，否则会重复）
       const aiMessages = this.engine.buildAIMessages(userText);
+
+      // 语音模式：注入简短回复提示
+      aiMessages.push({
+        role: 'system',
+        content: '【语音模式约束】1.每次回复控制在80字以内；开场白、过渡句控制在30字以内 2.语气口语化、自然，像真人面试对话 3.一次只问一个问题 4.不要用列表、编号、括号等书面格式 5.可以适当用"嗯""好的"等口语词过渡，但只在确认或衔接时使用，不连续重复 6.不要重复用户刚说过的话来凑字数',
+      });
+
       const interviewModel = getTaskModel('interview');
       const extraBody = buildThinkingExtraBody(interviewModel, false);
 

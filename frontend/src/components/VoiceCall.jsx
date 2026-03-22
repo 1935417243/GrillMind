@@ -8,14 +8,24 @@ import './VoiceCall.css';
  * @param {function} onHangup - 挂断回调
  * @param {function} onSwitchText - 切文字回调
  */
-export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
+export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMessages = [] }) {
   const [muted, setMuted] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [connStatus, setConnStatus] = useState('connecting');
   const [aiSpeaking, setAiSpeaking] = useState(false);
   const [userSpeaking, setUserSpeaking] = useState(false);
-  // 对话气泡列表：[{ role: 'interviewer'|'user', text, isTyping, id }]
-  const [chatMessages, setChatMessages] = useState([]);
+  // 对话气泡列表：从已有消息初始化
+  const [chatMessages, setChatMessages] = useState(() => {
+    let idCounter = 0;
+    return initialMessages
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(m => ({
+        id: ++idCounter,
+        role: m.role === 'assistant' ? 'interviewer' : 'user',
+        text: m.content,
+        isTyping: false,
+      }));
+  });
 
   // 引用
   const wsRef = useRef(null);
@@ -30,7 +40,7 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
   const audioQueueRef = useRef([]);
   const currentAudioRef = useRef(null);  // 当前播放的 Audio 实例
   const chatEndRef = useRef(null);        // 聊天列表底部锚点
-  const msgIdRef = useRef(0);             // 消息 ID 计数器
+  const msgIdRef = useRef(initialMessages.length);  // 消息 ID 计数器（从已有消息数开始）
   const currentUserMsgIdRef = useRef(null);  // 当前用户消息 ID（ASR 未结束时持续更新）
   const currentAiMsgIdRef = useRef(null);    // 当前 AI 消息 ID
 
