@@ -59,7 +59,13 @@ export default function InterviewRecords() {
               }}
             >
               <div className="record-date">
-                {record.startedAt?.split('T')[0]?.slice(5) || record.startedAt?.split(' ')[0]?.slice(5) || ''}
+                {(() => {
+                  const raw = record.startedAt || '';
+                  const d = raw.includes('T') ? raw.split('T') : raw.split(' ');
+                  const date = (d[0] || '').slice(5);
+                  const time = (d[1] || '').slice(0, 5);
+                  return date && time ? `${date} ${time}` : date || '';
+                })()}
               </div>
               <div className="record-main">
                   <div className="record-name">
@@ -68,12 +74,19 @@ export default function InterviewRecords() {
                 </div>
                 <div className="record-sub">
                   {depthMap[record.depth] || (typeof record.depth === 'number' ? `${record.depth}分钟` : record.depth)} · {record.turnsCount} 轮追问 · {difficultyMap[record.difficulty] || record.difficulty}
-                  {record.status === 'in_progress' && ' · 进行中'}
                 </div>
               </div>
-              <div className={`record-score ${!record.overallScore ? 'pending' : record.overallScore >= 80 ? 'good' : record.overallScore < 60 ? 'low' : ''}`}>
-                {record.overallScore ?? (record.status === 'in_progress' ? '…' : '—')}
-              </div>
+              {record.status === 'in_progress' ? (
+                <span className="tag tag-green">面试中</span>
+              ) : record.reportStatus === 'generating' ? (
+                <span className="tag tag-processing"><span className="parse-spinner" />解析中</span>
+              ) : record.reportStatus === 'failed' ? (
+                <span className="tag tag-warn">生成失败</span>
+              ) : (
+                <div className={`record-score ${record.overallScore >= 80 ? 'good' : record.overallScore < 60 ? 'low' : ''}`}>
+                  {record.overallScore ?? '—'}
+                </div>
+              )}
               <button
                 className="record-delete-btn"
                 title="删除"

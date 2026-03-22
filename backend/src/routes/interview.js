@@ -105,6 +105,7 @@ export default async function interviewRoutes(fastify) {
              s.started_at, s.ended_at, s.report_id,
              r.name as resume_name,
              rp.overall_score,
+             rp.status as report_status,
              jp.name as job_name
       FROM interview_sessions s
       LEFT JOIN resumes r ON s.resume_id = r.id
@@ -138,6 +139,7 @@ export default async function interviewRoutes(fastify) {
         startedAt: row.started_at,
         endedAt: row.ended_at,
         overallScore: row.overall_score,
+        reportStatus: row.report_status || null,
         turnsCount,
       };
     });

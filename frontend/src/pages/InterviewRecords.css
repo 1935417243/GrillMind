@@ -17,8 +17,9 @@
   font-family: 'DM Mono', monospace;
   font-size: 11px;
   color: var(--text-muted);
-  width: 80px;
+  min-width: 80px;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 .record-main { flex: 1; }
 .record-name { font-size: 13px; font-weight: 500; }
@@ -28,10 +29,32 @@
   font-size: 18px;
   font-weight: 500;
   color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .record-score.good { color: var(--accent-dim); }
 .record-score.low { color: var(--warn); }
-.record-score.pending { color: var(--text-muted); font-size: 14px; }
+
+/* 解析中状态标签（与简历卡片保持一致） */
+.tag-processing {
+  background: #eef4ff;
+  color: #4a6fa5;
+  border: 1px solid #c8d8ef;
+}
+.parse-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid #c8d8ef;
+  border-top-color: #4a6fa5;
+  border-radius: 50%;
+  animation: parseSpin 0.8s linear infinite;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+@keyframes parseSpin {
+  to { transform: rotate(360deg); }
+}
 
 /* 删除按钮 */
 .record-delete-btn {

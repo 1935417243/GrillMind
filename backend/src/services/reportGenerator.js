@@ -52,14 +52,38 @@ export async function generateReportAsync(sessionId) {
       category,
     });
 
-    const aiResult = await chatCompletionWithRetry({
-      providerModel: reportModel,
-      messages: promptMessages,
-      extraBody: buildThinkingExtraBody(reportModel, getTaskThinking('report')),
-    });
+    // 内容级重试：最多 3 次，每次将上次的错误信息反馈给 AI
+    const MAX_CONTENT_RETRIES = 3;
+    let report = null;
 
-    // 解析报告结果
-    const report = safeParseAIJson(aiResult);
+    for (let attempt = 1; attempt <= MAX_CONTENT_RETRIES; attempt++) {
+      const aiResult = await chatCompletionWithRetry({
+        providerModel: reportModel,
+        messages: promptMessages,
+        extraBody: buildThinkingExtraBody(reportModel, getTaskThinking('report')),
+      });
+
+      try {
+        report = safeParseAIJson(aiResult);
+        break; // 解析成功，跳出重试循环
+      } catch (parseErr) {
+        console.warn(`报告 JSON 解析失败 (第${attempt}次):`, parseErr.message);
+
+        if (attempt >= MAX_CONTENT_RETRIES) {
+          // 已达最大重试次数，抛出错误
+          throw new Error(`报告生成失败：${MAX_CONTENT_RETRIES}次尝试均返回非法 JSON`);
+        }
+
+        // 将本次失败信息追加到 messages，让 AI 自我修正
+        promptMessages.push(
+          { role: 'assistant', content: aiResult },
+          {
+            role: 'user',
+            content: `你上一次的回复无法被解析为合法 JSON，错误原因：${parseErr.message}\n请严格按照要求的 JSON 格式重新输出，不要包含代码块标记或任何额外文字。`,
+          }
+        );
+      }
+    }
 
     // 写入数据库
     db.prepare(`
