@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useInterview } from '../hooks/useInterview';
 import { sessionApi } from '../api/client';
 import ChatBubble from '../components/ChatBubble';
+import VoiceCall from '../components/VoiceCall';
 import './InterviewRoom.css';
 
 const STAGE_LABELS = {
@@ -25,6 +26,7 @@ export default function InterviewRoom() {
   const [inputText, setInputText] = useState('');
   const [sessionInfo, setSessionInfo] = useState(null);
   const [ending, setEnding] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
 
   const { messages, stage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages } = useInterview(id);
 
@@ -103,6 +105,8 @@ export default function InterviewRoom() {
           <div className="chat-meta-bar">
             {isClosing ? (
               <span className="tag tag-green" style={{fontSize:'11px'}}>● 面试结束</span>
+            ) : voiceMode ? (
+              <span className="tag tag-accent" style={{fontSize:'11px'}}>● 语音模式</span>
             ) : (
               <span className="tag tag-warn" style={{fontSize:'11px'}}>● 进行中</span>
             )}
@@ -118,42 +122,62 @@ export default function InterviewRoom() {
             </div>
           </div>
 
-          <div className="messages" ref={messagesRef}>
-            {messages.map((msg, i) => (
-              <ChatBubble key={i} role={msg.role} content={msg.content} />
-            ))}
-            {isStreaming && streamingContent && (
-              <ChatBubble role="assistant" content={streamingContent} isStreaming />
-            )}
-          </div>
-
-          {isClosing ? (
-            <div className="input-area" style={{justifyContent:'center', gap:'12px'}}>
-              <span style={{color:'var(--text-muted)', fontSize:'13px'}}>
-                {ending ? '正在生成报告，即将跳转...' : '面试已结束'}
-              </span>
-              {!ending && (
-                <button className="btn btn-primary" onClick={handleEndAndReport} style={{padding:'8px 20px', fontSize:'13px'}}>
-                  结束面试并查看报告
-                </button>
-              )}
-            </div>
+          {voiceMode ? (
+            <VoiceCall
+              sessionId={id}
+              onHangup={() => setVoiceMode(false)}
+              onSwitchText={() => setVoiceMode(false)}
+            />
           ) : (
-            <div className="input-area">
-              <textarea
-                ref={inputRef}
-                className="chat-input"
-                placeholder="输入你的回答…"
-                rows="1"
-                value={inputText}
-                onChange={e => setInputText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isStreaming}
-              />
-              <button className="btn btn-primary" onClick={handleSend} disabled={isStreaming || !inputText.trim()}>
-                发送
-              </button>
-            </div>
+            <>
+              <div className="messages" ref={messagesRef}>
+                {messages.map((msg, i) => (
+                  <ChatBubble key={i} role={msg.role} content={msg.content} />
+                ))}
+                {isStreaming && streamingContent && (
+                  <ChatBubble role="assistant" content={streamingContent} isStreaming />
+                )}
+              </div>
+
+              {isClosing ? (
+                <div className="input-area" style={{justifyContent:'center', gap:'12px'}}>
+                  <span style={{color:'var(--text-muted)', fontSize:'13px'}}>
+                    {ending ? '正在生成报告，即将跳转...' : '面试已结束'}
+                  </span>
+                  {!ending && (
+                    <button className="btn btn-primary" onClick={handleEndAndReport} style={{padding:'8px 20px', fontSize:'13px'}}>
+                      结束面试并查看报告
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="input-area">
+                  <textarea
+                    ref={inputRef}
+                    className="chat-input"
+                    placeholder="输入你的回答…"
+                    rows="1"
+                    value={inputText}
+                    onChange={e => setInputText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={isStreaming}
+                  />
+                  <button
+                    className="voice-btn"
+                    onClick={() => setVoiceMode(true)}
+                    title="切换语音模式"
+                    disabled={isStreaming}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  </button>
+                  <button className="btn btn-primary" onClick={handleSend} disabled={isStreaming || !inputText.trim()}>
+                    发送
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 

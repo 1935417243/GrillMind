@@ -10,14 +10,16 @@
     "dev": "node --watch src/index.js"
   },
   "dependencies": {
-    "fastify": "^4.28.0",
-    "@fastify/multipart": "^8.3.0",
     "@fastify/cors": "^9.0.0",
+    "@fastify/multipart": "^8.3.0",
     "@fastify/static": "^7.0.0",
+    "@fastify/websocket": "^10.0.1",
     "better-sqlite3": "^11.0.0",
+    "fastify": "^4.28.0",
+    "mammoth": "^1.8.0",
     "openai": "^4.52.0",
     "pdf-parse": "^1.1.1",
-    "mammoth": "^1.8.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "ws": "^8.20.0"
   }
 }

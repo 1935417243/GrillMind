@@ -125,15 +125,17 @@ export function getModelBinding() {
  * 更新任务模型绑定
  * @param {object} binding - { parseModel, interviewModel, reportModel, baseModel }
  */
-export function updateModelBinding({ parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking }) {
+export function updateModelBinding({ parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking, asrModel, ttsModel, ttsVoice }) {
   db.prepare(`
     UPDATE task_model_binding
     SET parse_model = ?, interview_model = ?, report_model = ?, base_model = ?,
-        parse_thinking = ?, interview_thinking = ?, report_thinking = ?, base_thinking = ?
+        parse_thinking = ?, interview_thinking = ?, report_thinking = ?, base_thinking = ?,
+        asr_model = ?, tts_model = ?, tts_voice = ?
     WHERE id = 'singleton'
   `).run(
     parseModel, interviewModel, reportModel || null, baseModel || null,
     parseThinking ? 1 : 0, 0, // interview_thinking 强制为 0
-    reportThinking ? 1 : 0, baseThinking ? 1 : 0
+    reportThinking ? 1 : 0, baseThinking ? 1 : 0,
+    asrModel || null, ttsModel || null, ttsVoice || null
   );
 }

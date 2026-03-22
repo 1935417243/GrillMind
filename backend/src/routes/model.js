@@ -56,14 +56,17 @@ export default async function modelRoutes(fastify) {
         interviewThinking: !!binding?.interview_thinking,
         reportThinking: !!binding?.report_thinking,
         baseThinking: !!binding?.base_thinking,
+        asrModel: binding?.asr_model || 'paraformer-realtime-v2',
+        ttsModel: binding?.tts_model || 'cosyvoice-v1',
+        ttsVoice: binding?.tts_voice || 'longxiaochun',
       },
     };
   });
 
   // 更新任务模型绑定
   fastify.put('/api/v1/models/binding', async (req, reply) => {
-    const { parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking } = req.body;
-    updateModelBinding({ parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking });
-    return { success: true, data: { parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking } };
+    const { parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking, asrModel, ttsModel, ttsVoice } = req.body;
+    updateModelBinding({ parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking, asrModel, ttsModel, ttsVoice });
+    return { success: true, data: { parseModel, interviewModel, reportModel, baseModel, parseThinking, interviewThinking, reportThinking, baseThinking, asrModel, ttsModel, ttsVoice } };
   });
 }

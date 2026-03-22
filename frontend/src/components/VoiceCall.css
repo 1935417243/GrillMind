@@ -1,0 +1,184 @@
+/* 语音通话界面样式 */
+
+/* 语音界面容器 - 替换 chat 区域的消息列表和输入栏 */
+.voice-call {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 32px 24px 0;
+  overflow: hidden;
+}
+
+/* 连接状态提示 */
+.voice-conn-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 4px 12px;
+  background: var(--bg);
+  border-radius: 12px;
+  position: absolute;
+  top: 12px;
+}
+
+/* ── 面试官 & 用户 区域 ── */
+.voice-participant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* 头像圆圈 */
+.voice-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+.voice-avatar.interviewer {
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+}
+.voice-avatar.user {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+}
+
+/* 状态标签 */
+.voice-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.voice-status .status-role {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* ── 波形动画 ── */
+.voice-waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 32px;
+  margin-top: 4px;
+}
+.voice-waveform .bar {
+  width: 3px;
+  border-radius: 2px;
+  transition: height 0.15s ease;
+}
+/* 静态虚线：等待状态 */
+.voice-waveform.idle .bar {
+  height: 2px;
+  background: var(--border-strong);
+}
+/* 激活波形 - 面试官（蓝色） */
+.voice-waveform.active-interviewer .bar {
+  background: #3b82f6;
+  animation: waveJump 0.6s ease-in-out infinite alternate;
+}
+/* 激活波形 - 用户（绿色） */
+.voice-waveform.active-user .bar {
+  background: #10b981;
+  animation: waveJump 0.6s ease-in-out infinite alternate;
+}
+/* 波形跳动延迟 */
+.voice-waveform .bar:nth-child(1) { animation-delay: 0s; }
+.voice-waveform .bar:nth-child(2) { animation-delay: 0.1s; }
+.voice-waveform .bar:nth-child(3) { animation-delay: 0.2s; }
+.voice-waveform .bar:nth-child(4) { animation-delay: 0.3s; }
+.voice-waveform .bar:nth-child(5) { animation-delay: 0.15s; }
+.voice-waveform .bar:nth-child(6) { animation-delay: 0.25s; }
+.voice-waveform .bar:nth-child(7) { animation-delay: 0.05s; }
+
+@keyframes waveJump {
+  0%   { height: 4px; }
+  100% { height: 24px; }
+}
+
+/* 字幕区域 */
+.voice-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 360px;
+  line-height: 1.6;
+  min-height: 20px;
+  margin-top: 4px;
+}
+
+/* ── 分隔线 ── */
+.voice-divider {
+  width: 60%;
+  max-width: 280px;
+  height: 1px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── 底部操作栏 ── */
+.voice-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.voice-ctrl-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 10px;
+  transition: all 0.2s;
+  min-width: 64px;
+}
+.voice-ctrl-btn:hover {
+  border-color: var(--accent-dim);
+  color: var(--text-primary);
+  background: var(--bg);
+}
+.voice-ctrl-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.voice-ctrl-btn.hangup {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.voice-ctrl-btn.hangup:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+.voice-ctrl-btn svg {
+  width: 20px;
+  height: 20px;
+}

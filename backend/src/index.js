@@ -13,6 +13,8 @@ import resumeRoutes    from './routes/resume.js';
 import interviewRoutes from './routes/interview.js';
 import reportRoutes      from './routes/report.js';
 import jobPositionRoutes from './routes/jobPosition.js';
+import voiceRoute        from './routes/voiceRoute.js';
+import websocket         from '@fastify/websocket';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -36,6 +38,9 @@ await fastify.register(multipart, {
   },
 });
 
+// 注册 WebSocket 插件
+await fastify.register(websocket);
+
 // 静态文件托管（生产模式用，serve 前端 build 产物）
 const publicDir = path.join(__dirname, '../public');
 try {
@@ -53,6 +58,7 @@ await fastify.register(resumeRoutes);
 await fastify.register(interviewRoutes);
 await fastify.register(reportRoutes);
 await fastify.register(jobPositionRoutes);
+await fastify.register(voiceRoute);
 
 // 启动服务
 const PORT = process.env.PORT || 3001;

@@ -66,6 +66,16 @@ function initDB() {
     // 列已存在，忽略
   }
 
+  // 迁移：为 task_model_binding 添加语音配置列（已有则忽略）
+  const voiceCols = ['asr_model', 'tts_model', 'tts_voice'];
+  for (const col of voiceCols) {
+    try {
+      db.exec(`ALTER TABLE task_model_binding ADD COLUMN ${col} TEXT`);
+    } catch {
+      // 列已存在，忽略
+    }
+  }
+
   // 内置岗位种子数据（使用固定 UUID + INSERT OR IGNORE 保证幂等）
   const seedPositions = [
     {

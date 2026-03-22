@@ -4,6 +4,7 @@ import { modelApi } from '../api/client';
 import { useAppDispatch } from '../store/AppContext';
 import { useToast } from '../components/Toast';
 import ModelDropdown from '../components/ModelDropdown';
+import SimpleDropdown from '../components/SimpleDropdown';
 import './ModelSettings.css';
 
 export default function ModelSettings() {
@@ -22,6 +23,7 @@ export default function ModelSettings() {
   const [binding, setBinding] = useState({
     parseModel: '', interviewModel: '', reportModel: '', baseModel: '',
     parseThinking: false, interviewThinking: false, reportThinking: false, baseThinking: false,
+    asrModel: 'paraformer-realtime-v2', ttsModel: 'cosyvoice-v1', ttsVoice: 'longxiaochun',
   });
 
   // 加载数据
@@ -37,6 +39,9 @@ export default function ModelSettings() {
         interviewThinking: false, // 面试对话强制关闭
         reportThinking: !!data.reportThinking,
         baseThinking: !!data.baseThinking,
+        asrModel: data.asrModel || 'paraformer-realtime-v2',
+        ttsModel: data.ttsModel || 'cosyvoice-v1',
+        ttsVoice: data.ttsVoice || 'longxiaochun',
       });
     }).catch(() => {});
   }, []);
@@ -375,6 +380,95 @@ export default function ModelSettings() {
 
         <div style={{marginTop:'4px',fontSize:'12px',color:'var(--text-muted)',lineHeight:'1.7'}}>
           连接成功的供应商模型自动出现在上方下拉列表中。
+        </div>
+
+        <div className="divider"></div>
+
+        <div className="card-label" style={{marginBottom:'8px'}}>语音通话配置</div>
+        <div className="thinking-tip">
+          <span className="thinking-tip-icon">🎙️</span>
+          语音通话功能需要百炼 API Key 已配置且连接成功
+        </div>
+        <div className="card">
+          <div className="binding-row">
+            <span className="binding-label" style={{flex:1}}>
+              语音识别模型
+              <span className="binding-hint">ASR，实时语音转文字</span>
+            </span>
+            <SimpleDropdown
+              options={[
+                { value: 'paraformer-realtime-v2', label: 'paraformer-realtime-v2（推荐）' },
+                { value: 'paraformer-realtime-v1', label: 'paraformer-realtime-v1' },
+                { value: 'paraformer-realtime-8k-v2', label: 'paraformer-realtime-8k-v2（8kHz）' },
+                { value: 'paraformer-realtime-8k-v1', label: 'paraformer-realtime-8k-v1（8kHz）' },
+              ]}
+              value={binding.asrModel}
+              onChange={v => setBinding(prev => ({ ...prev, asrModel: v }))}
+            />
+          </div>
+          <div className="binding-row">
+            <span className="binding-label" style={{flex:1}}>
+              语音合成模型
+              <span className="binding-hint">TTS，文字转语音</span>
+            </span>
+            <SimpleDropdown
+              options={[
+                { value: 'cosyvoice-v1', label: 'cosyvoice-v1（生成式）' },
+                { value: 'cosyvoice-v2', label: 'cosyvoice-v2（复刻增强）' },
+                { value: 'cosyvoice-v3-flash', label: 'cosyvoice-v3-flash（低延迟）' },
+                { value: 'cosyvoice-v3-plus', label: 'cosyvoice-v3-plus（高品质）' },
+                { value: 'cosyvoice-v3.5-flash', label: 'cosyvoice-v3.5-flash（最新低延迟）' },
+                { value: 'cosyvoice-v3.5-plus', label: 'cosyvoice-v3.5-plus（最新高品质）' },
+              ]}
+              value={binding.ttsModel}
+              onChange={v => {
+                const voiceMap = {
+                  'cosyvoice-v1': 'longxiaochun',
+                  'cosyvoice-v2': 'longxiaochun',
+                  'cosyvoice-v3-flash': 'longanyang',
+                  'cosyvoice-v3-plus': 'longanyang',
+                  'cosyvoice-v3.5-flash': 'longanyang',
+                  'cosyvoice-v3.5-plus': 'longanyang',
+                };
+                setBinding(prev => ({ ...prev, ttsModel: v, ttsVoice: voiceMap[v] || prev.ttsVoice }));
+              }}
+            />
+          </div>
+          <div className="binding-row" style={{borderBottom:'none'}}>
+            <span className="binding-label" style={{flex:1}}>
+              面试官发音人
+              <span className="binding-hint">音色，不同模型可选不同音色</span>
+            </span>
+            <SimpleDropdown
+              options={
+                (binding.ttsModel === 'cosyvoice-v1' || binding.ttsModel === 'cosyvoice-v2')
+                  ? [
+                      { value: 'longxiaochun', label: 'longxiaochun（温柔女声）' },
+                      { value: 'longhua', label: 'longhua（标准男声）' },
+                      { value: 'longwan', label: 'longwan（温婉女声）' },
+                      { value: 'longshu', label: 'longshu（有声书男声）' },
+                      { value: 'longshuo', label: 'longshuo（商务男声）' },
+                      { value: 'longjing', label: 'longjing（甜美女声）' },
+                      { value: 'longmiao', label: 'longmiao（活泼女声）' },
+                      { value: 'longyue', label: 'longyue（温暖男声）' },
+                      { value: 'longlaotie', label: 'longlaotie（东北老铁）' },
+                    ]
+                  : [
+                      { value: 'longanyang', label: 'longanyang（阳光大男孩）' },
+                      { value: 'longanhuan', label: 'longanhuan（元气少女）' },
+                      { value: 'longange', label: 'longange（知性女声）' },
+                      { value: 'longanbiao', label: 'longanbiao（低沉男声）' },
+                      { value: 'longxiaochun', label: 'longxiaochun（温柔女声）' },
+                      { value: 'longhua', label: 'longhua（标准男声）' },
+                    ]
+              }
+              value={binding.ttsVoice}
+              onChange={v => setBinding(prev => ({ ...prev, ttsVoice: v }))}
+            />
+          </div>
+          <div style={{marginTop:'12px'}}>
+            <button className="btn btn-primary btn-sm" onClick={handleBindingSave}>保存配置</button>
+          </div>
         </div>
 
       </div>
