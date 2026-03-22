@@ -28,7 +28,7 @@ export default function InterviewRoom() {
   const [ending, setEnding] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
 
-  const { messages, stage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages } = useInterview(id);
+  const { messages, stage, setStage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages } = useInterview(id);
 
   // 加载会话数据
   useEffect(() => {
@@ -126,6 +126,7 @@ export default function InterviewRoom() {
             <VoiceCall
               sessionId={id}
               initialMessages={messages}
+              onStageChange={setStage}
               onHangup={() => {
                 setVoiceMode(false);
                 // 重新拉取会话数据，同步语音模式中产生的聊天记录

@@ -8,12 +8,13 @@ import './VoiceCall.css';
  * @param {function} onHangup - 挂断回调
  * @param {function} onSwitchText - 切文字回调
  */
-export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMessages = [] }) {
+export default function VoiceCall({ sessionId, onHangup, onSwitchText, onStageChange, initialMessages = [] }) {
   const [muted, setMuted] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
   const [connStatus, setConnStatus] = useState('connecting');
   const [aiSpeaking, setAiSpeaking] = useState(false);
   const [userSpeaking, setUserSpeaking] = useState(false);
+  const [interviewEnded, setInterviewEnded] = useState(false);
   // 对话气泡列表：从已有消息初始化
   const [chatMessages, setChatMessages] = useState(() => {
     let idCounter = 0;
@@ -35,7 +36,9 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMe
   const vadFrameRef = useRef(null);
   const analyserRef = useRef(null);
   const mutedRef = useRef(false);
-  const aiSpeakingRef = useRef(false); // 面试官说话时暂停用户音频采集
+  const aiSpeakingRef = useRef(false);
+  const interviewEndedRef = useRef(false); // 面试已结束标记
+  const onSwitchTextRef = useRef(onSwitchText); // 保持最新引用
   // 音频播放相关
   const audioQueueRef = useRef([]);
   const currentAudioRef = useRef(null);  // 当前播放的 Audio 实例
@@ -47,6 +50,7 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMe
   // 同步 muted / aiSpeaking 到 ref
   useEffect(() => { mutedRef.current = muted; }, [muted]);
   useEffect(() => { aiSpeakingRef.current = aiSpeaking; }, [aiSpeaking]);
+  useEffect(() => { onSwitchTextRef.current = onSwitchText; }, [onSwitchText]);
 
   // 自动滚动到最新消息
   useEffect(() => {
@@ -155,6 +159,15 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMe
           }
           currentAiMsgIdRef.current = null;
         }
+        // 更新父组件的阶段状态
+        if (msg.stage && onStageChange) {
+          onStageChange(msg.stage);
+        }
+        // 检测面试是否结束
+        if (msg.isClosing) {
+          setInterviewEnded(true);
+          interviewEndedRef.current = true;
+        }
         playBufferedAudio();
         break;
 
@@ -196,6 +209,12 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMe
       setAiSpeaking(false);
       currentAudioRef.current = null;
       URL.revokeObjectURL(url);
+      // 面试结束：音频播完后 2 秒自动切回文字模式
+      if (interviewEndedRef.current) {
+        setTimeout(() => {
+          onSwitchTextRef.current?.();
+        }, 2000);
+      }
     };
     audio.onerror = () => {
       console.warn('音频播放失败');
@@ -234,8 +253,8 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMe
       processorRef.current = processor;
 
       processor.onaudioprocess = (e) => {
-        // 静音或面试官正在说话时，不发送音频
-        if (mutedRef.current || aiSpeakingRef.current) return;
+        // 静音、面试官说话、面试已结束时不发送音频
+        if (mutedRef.current || aiSpeakingRef.current || interviewEndedRef.current) return;
         const ws = wsRef.current;
         if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
@@ -377,6 +396,10 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText, initialMe
               {renderWaveform('user')}
             </div>
           </>
+        )}
+
+        {interviewEnded && (
+          <div className="vc-ended-tip">面试已结束，即将切换到文字模式…</div>
         )}
       </div>
 

@@ -79,5 +79,5 @@ export function useInterview(sessionId) {
     }
   }, []);
 
-  return { messages, stage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages };
+  return { messages, stage, setStage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages };
 }

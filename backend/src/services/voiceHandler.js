@@ -202,8 +202,11 @@ export class VoiceSession {
     console.log(`💬 开始处理用户语音: "${userText}"`);
 
     try {
-      // 1. 构建 AI 消息（注意：buildAIMessages 内部会追加用户消息，
-      //    不要先调 appendMessage，否则会重复）
+      // 1. 先追加用户消息（推进面试阶段），再构建 AI 消息
+      //    与文字模式保持一致的调用顺序
+      const stageBefore = this.engine.stage;
+      this.engine.appendMessage('user', userText);
+      console.log(`📊 阶段推进: ${stageBefore} → ${this.engine.stage} (stageTurns=${this.engine.stageTurns})`);
       const aiMessages = this.engine.buildAIMessages(userText);
 
       // 语音模式：注入简短回复提示
@@ -215,7 +218,7 @@ export class VoiceSession {
       const interviewModel = getTaskModel('interview');
       const extraBody = buildThinkingExtraBody(interviewModel, false);
 
-      console.log(`🤖 调用 LLM [model=${interviewModel}]`);
+      console.log(`🤖 调用 LLM [model=${interviewModel}] [stage=${this.engine.stage}]`);
 
       // 通知前端 AI 开始回复
       this.sendToClient({ type: 'ai_start' });
@@ -249,9 +252,7 @@ export class VoiceSession {
         return;
       }
 
-      // 2. 追加消息到面试引擎并持久化
-      //    先追加用户消息，再追加 AI 回复
-      this.engine.appendMessage('user', userText);
+      // 2. 追加 AI 回复并持久化
       this.engine.appendMessage('assistant', fullAiContent);
       this.engine.persist();
 
@@ -444,7 +445,7 @@ export class VoiceSession {
           header: { action: 'finish-task', task_id: this.asrTaskId, streaming: 'duplex' },
           payload: { input: {} },
         }));
-      } catch {}
+      } catch { }
       this.asrWs.close();
     }
 

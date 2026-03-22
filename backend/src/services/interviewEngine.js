@@ -11,28 +11,31 @@ import { nowCST } from '../utils/time.js';
  */
 function getStageFlow(depth) {
   const flows = {
+    // 快速模式 ~10轮
     quick: {
       opening:        { minTurns: 1, next: 'intro' },
-      intro:          { minTurns: 1, next: 'intro_followup' },
-      intro_followup: { minTurns: 1, maxTurns: 1, next: 'project_dive' },
-      project_dive:   { minTurns: 1, maxTurns: 2, next: 'basic_verify', maxProjects: 1 },
-      basic_verify:   { minTurns: 1, maxTurns: 2, next: 'closing' },
-      closing:        { minTurns: 1, next: null },
-    },
-    standard: {
-      opening:        { minTurns: 1, next: 'intro' },
-      intro:          { minTurns: 1, next: 'intro_followup' },
-      intro_followup: { minTurns: 1, maxTurns: 2, next: 'project_dive' },
-      project_dive:   { minTurns: 2, maxTurns: 4, next: 'basic_verify', maxProjects: 2 },
+      intro:          { minTurns: 1, maxTurns: 2, next: 'intro_followup' },
+      intro_followup: { minTurns: 2, maxTurns: 2, next: 'project_dive' },
+      project_dive:   { minTurns: 3, maxTurns: 4, next: 'basic_verify', maxProjects: 1 },
       basic_verify:   { minTurns: 2, maxTurns: 3, next: 'closing' },
       closing:        { minTurns: 1, next: null },
     },
+    // 标准模式 ~20轮
+    standard: {
+      opening:        { minTurns: 1, next: 'intro' },
+      intro:          { minTurns: 2, maxTurns: 2, next: 'intro_followup' },
+      intro_followup: { minTurns: 3, maxTurns: 3, next: 'project_dive' },
+      project_dive:   { minTurns: 3, maxTurns: 4, next: 'basic_verify', maxProjects: 2 },
+      basic_verify:   { minTurns: 4, maxTurns: 5, next: 'closing' },
+      closing:        { minTurns: 1, next: null },
+    },
+    // 深入模式 ~30轮
     deep: {
       opening:        { minTurns: 1, next: 'intro' },
-      intro:          { minTurns: 1, next: 'intro_followup' },
-      intro_followup: { minTurns: 2, maxTurns: 3, next: 'project_dive' },
+      intro:          { minTurns: 2, maxTurns: 2, next: 'intro_followup' },
+      intro_followup: { minTurns: 4, maxTurns: 5, next: 'project_dive' },
       project_dive:   { minTurns: 3, maxTurns: 5, next: 'basic_verify', maxProjects: 3 },
-      basic_verify:   { minTurns: 3, maxTurns: 4, next: 'closing' },
+      basic_verify:   { minTurns: 6, maxTurns: 8, next: 'closing' },
       closing:        { minTurns: 1, next: null },
     },
   };

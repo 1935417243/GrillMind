@@ -412,21 +412,18 @@ export default function ModelSettings() {
             <SimpleDropdown
               options={[
                 { value: 'cosyvoice-v1', label: 'cosyvoice-v1（生成式）' },
-                { value: 'cosyvoice-v2', label: 'cosyvoice-v2（复刻增强）' },
-                { value: 'cosyvoice-v3-flash', label: 'cosyvoice-v3-flash（低延迟）' },
+                { value: 'cosyvoice-v2', label: 'cosyvoice-v2（音色丰富）' },
+                { value: 'cosyvoice-v3-flash', label: 'cosyvoice-v3-flash（低延迟推荐）' },
                 { value: 'cosyvoice-v3-plus', label: 'cosyvoice-v3-plus（高品质）' },
-                { value: 'cosyvoice-v3.5-flash', label: 'cosyvoice-v3.5-flash（最新低延迟）' },
-                { value: 'cosyvoice-v3.5-plus', label: 'cosyvoice-v3.5-plus（最新高品质）' },
               ]}
               value={binding.ttsModel}
               onChange={v => {
+                // 切换模型时自动选该模型的默认音色
                 const voiceMap = {
                   'cosyvoice-v1': 'longxiaochun',
-                  'cosyvoice-v2': 'longxiaochun',
+                  'cosyvoice-v2': 'longanli',
                   'cosyvoice-v3-flash': 'longanyang',
                   'cosyvoice-v3-plus': 'longanyang',
-                  'cosyvoice-v3.5-flash': 'longanyang',
-                  'cosyvoice-v3.5-plus': 'longanyang',
                 };
                 setBinding(prev => ({ ...prev, ttsModel: v, ttsVoice: voiceMap[v] || prev.ttsVoice }));
               }}
@@ -439,25 +436,46 @@ export default function ModelSettings() {
             </span>
             <SimpleDropdown
               options={
-                (binding.ttsModel === 'cosyvoice-v1' || binding.ttsModel === 'cosyvoice-v2')
+                binding.ttsModel === 'cosyvoice-v1'
                   ? [
-                      { value: 'longxiaochun', label: '温柔女声' },
-                      { value: 'longhua', label: '标准男声' },
-                      { value: 'longwan', label: '温婉女声' },
-                      { value: 'longshu', label: '有声书男声' },
-                      { value: 'longshuo', label: '商务男声' },
-                      { value: 'longjing', label: '甜美女声' },
-                      { value: 'longmiao', label: '活泼女声' },
-                      { value: 'longyue', label: '温暖男声' },
-                      { value: 'longlaotie', label: '东北老铁' },
+                      { value: 'longxiaochun', label: '龙小淳（温柔女声）' },
+                      { value: 'longhua', label: '龙华（标准男声）' },
+                      { value: 'longwan', label: '龙婉（温婉女声）' },
+                      { value: 'longshu', label: '龙书（沉稳男声）' },
+                      { value: 'longshuo', label: '龙硕（商务男声）' },
+                      { value: 'longjing', label: '龙婧（播音女声）' },
+                      { value: 'longmiao', label: '龙妙（活泼女声）' },
+                      { value: 'longyue', label: '龙悦（温暖女声）' },
+                      { value: 'longxiaocheng', label: '龙小诚（磁性男声）' },
+                    ]
+                : binding.ttsModel === 'cosyvoice-v2'
+                  ? [
+                      { value: 'longanli', label: '龙安莉（利落从容女）' },
+                      { value: 'longanlang', label: '龙安朗（清爽利落男）' },
+                      { value: 'longanwen', label: '龙安温（优雅知性女）' },
+                      { value: 'longanyun', label: '龙安昀（居家暖男）' },
+                      { value: 'longanzhi', label: '龙安智（睿智轻熟男）' },
+                      { value: 'longanqin', label: '龙安亲（亲和活泼女）' },
+                      { value: 'longanya', label: '龙安雅（高雅气质女）' },
+                      { value: 'longanshuo', label: '龙安朔（干净清爽男）' },
+                      { value: 'longanling', label: '龙安灵（思维灵动女）' },
+                    ]
+                : binding.ttsModel === 'cosyvoice-v3-plus'
+                  ? [
+                      { value: 'longanyang', label: '龙安洋（阳光大男孩）' },
+                      { value: 'longanhuan', label: '龙安欢（元气少女）' },
                     ]
                   : [
-                      { value: 'longanyang', label: '阳光大男孩' },
-                      { value: 'longanhuan', label: '元气少女' },
-                      { value: 'longange', label: '知性女声' },
-                      { value: 'longanbiao', label: '低沉男声' },
-                      { value: 'longxiaochun', label: '温柔女声' },
-                      { value: 'longhua', label: '标准男声' },
+                      // cosyvoice-v3-flash
+                      { value: 'longanyang', label: '龙安洋（阳光大男孩）' },
+                      { value: 'longanhuan', label: '龙安欢（元气少女）' },
+                      { value: 'longxiaochun_v3', label: '龙小淳（知性积极女）' },
+                      { value: 'longcheng_v3', label: '龙橙（智慧青年男）' },
+                      { value: 'longtian_v3', label: '龙天（磁性理智男）' },
+                      { value: 'longanzhi_v3', label: '龙安智（睿智轻熟男）' },
+                      { value: 'longanlang_v3', label: '龙安朗（清爽利落男）' },
+                      { value: 'longanwen_v3', label: '龙安温（优雅知性女）' },
+                      { value: 'longanyun_v3', label: '龙安昀（居家暖男）' },
                     ]
               }
               value={binding.ttsVoice}
