@@ -129,8 +129,8 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText, onStageCh
         setAiSpeaking(true);
         setUserSpeaking(false);
         audioQueueRef.current = [];
-        // 新建 AI 消息（打字动画）
-        {
+        // silent 模式（如开场白播放）不创建新气泡
+        if (!msg.silent) {
           const newId = ++msgIdRef.current;
           currentAiMsgIdRef.current = newId;
           setChatMessages(prev => [...prev, { id: newId, role: 'interviewer', text: '', isTyping: true }]);

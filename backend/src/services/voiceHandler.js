@@ -87,6 +87,23 @@ export class VoiceSession {
     this._started = true;
     console.log(`🎙️ VoiceSession 启动 [${this.sessionId}]`);
     await this.connectASR();
+
+    // 播放开场白：字幕里已有这条消息，只做 TTS 播放，不发 ai_text
+    try {
+      const messages = JSON.parse(
+        db.prepare('SELECT messages FROM interview_sessions WHERE id = ?').pluck().get(this.sessionId) || '[]'
+      );
+      const opening = messages.find(m => m.role === 'assistant' && m.stage === 'opening');
+      if (opening && opening.content && messages.length === 1) {
+        console.log(`🎤 播放开场白: "${opening.content.substring(0, 30)}..."`);
+        // 只通知前端「面试官正在说话」，暂停 ASR 采集
+        this.sendToClient({ type: 'ai_start', silent: true });
+        await this.synthesizeAndPlay(opening.content);
+        this.sendToClient({ type: 'ai_end', stage: this.engine.stage, isClosing: false });
+      }
+    } catch (err) {
+      console.warn('⚠️ 播放开场白失败:', err.message);
+    }
   }
 
   /**
