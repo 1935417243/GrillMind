@@ -8,12 +8,14 @@
   flex: 1;
   overflow: hidden;
 }
+
 .chat-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
+
 .chat-meta-bar {
   padding: 12px 24px;
   border-bottom: 1px solid var(--border);
@@ -25,17 +27,27 @@
   background: var(--surface);
   flex-shrink: 0;
 }
+
 .progress-steps {
   display: flex;
   gap: 4px;
 }
+
 .step-dot {
-  width: 6px; height: 6px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--border-strong);
 }
-.step-dot.done { background: var(--accent); }
-.step-dot.active { background: var(--accent); box-shadow: 0 0 0 2px var(--accent-light); }
+
+.step-dot.done {
+  background: var(--accent);
+}
+
+.step-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
 
 .messages {
   flex: 1;
@@ -55,6 +67,7 @@
   align-items: flex-end;
   flex-shrink: 0;
 }
+
 .chat-input {
   flex: 1;
   padding: 10px 14px;
@@ -71,8 +84,14 @@
   min-height: 42px;
   max-height: 120px;
 }
-.chat-input:focus { border-color: var(--accent-dim); }
-.chat-input::placeholder { color: var(--text-muted); }
+
+.chat-input:focus {
+  border-color: var(--accent-dim);
+}
+
+.chat-input::placeholder {
+  color: var(--text-muted);
+}
 
 .side-info {
   width: 220px;
@@ -82,7 +101,11 @@
   background: var(--surface);
   flex-shrink: 0;
 }
-.side-section { margin-bottom: 20px; }
+
+.side-section {
+  margin-bottom: 20px;
+}
+
 .side-title {
   font-size: 10px;
   font-weight: 500;
@@ -92,6 +115,7 @@
   font-family: 'DM Mono', monospace;
   margin-bottom: 8px;
 }
+
 .side-item {
   font-size: 12px;
   color: var(--text-secondary);
@@ -102,17 +126,20 @@
   align-items: baseline;
   gap: 12px;
 }
-.side-item > span:first-child {
+
+.side-item>span:first-child {
   flex-shrink: 0;
   white-space: nowrap;
   font-weight: 500;
   color: var(--text-primary);
 }
-.side-item > span:last-child {
+
+.side-item>span:last-child {
   text-align: right;
   word-break: break-all;
   line-height: 1.6;
 }
+
 .end-btn {
   width: 100%;
   margin-top: 8px;
@@ -134,11 +161,13 @@
   transition: all 0.2s;
   flex-shrink: 0;
 }
+
 .voice-btn:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-light);
 }
+
 .voice-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;

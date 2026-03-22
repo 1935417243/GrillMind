@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppState, useAppDispatch } from '../store/AppContext';
-import { sessionApi, resumeApi, jobPositionApi } from '../api/client';
+import { sessionApi, resumeApi, jobPositionApi, modelApi } from '../api/client';
 import CustomSelect from '../components/CustomSelect';
 import './StartInterview.css';
 
@@ -32,6 +32,8 @@ export default function StartInterview() {
 
   const [starting,   setStarting]   = useState(false);
   const [jobList,    setJobList]    = useState([]);  // 已启用岗位列表
+  const [interviewModel, setInterviewModel] = useState(null); // 对话模型绑定
+  const [showModelDialog, setShowModelDialog] = useState(false); // 模型未配置弹窗
 
   // 加载岗位列表
   useEffect(() => {
@@ -45,6 +47,15 @@ export default function StartInterview() {
     }).catch(() => {});
   }, []);
 
+  // 加载模型绑定（用于校验对话模型是否已配置）
+  useEffect(() => {
+    modelApi.getBinding().then(data => {
+      setInterviewModel(data.interviewModel || '');
+    }).catch(() => {
+      setInterviewModel('');
+    });
+  }, []);
+
   // 简历解析结果推荐岗位（job_type 现在存的是岗位 ID）
   useEffect(() => {
     if (activeResume?.jobType && jobList.some(j => j.id === activeResume.jobType)) {
@@ -54,6 +65,11 @@ export default function StartInterview() {
 
   const handleStart = async () => {
     if (!activeResume || starting) return;
+    // 校验对话模型是否已配置
+    if (!interviewModel) {
+      setShowModelDialog(true);
+      return;
+    }
     setStarting(true);
     try {
       const { sessionId } = await sessionApi.create({
@@ -191,6 +207,22 @@ export default function StartInterview() {
         </div>
 
       </div>
+
+      {/* 对话模型未配置弹窗 */}
+      {showModelDialog && (
+        <div className="confirm-overlay" onClick={() => setShowModelDialog(false)}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-title">无法开始面试</div>
+            <div className="confirm-body">
+              尚未配置面试对话模型，请先前往模型设置页面配置后再开始面试。
+            </div>
+            <div className="confirm-actions">
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowModelDialog(false)}>取消</button>
+              <button className="btn btn-primary btn-sm" onClick={() => navigate('/settings')}>去设置</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

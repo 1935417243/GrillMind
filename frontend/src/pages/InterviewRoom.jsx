@@ -8,21 +8,21 @@ import VoiceCall from '../components/VoiceCall';
 import './InterviewRoom.css';
 
 const STAGE_LABELS = {
-  opening:        '开场',
-  intro:          '自我介绍',
+  opening: '开场',
+  intro: '自我介绍',
   intro_followup: '介绍追问',
-  project_dive:   '项目深挖',
-  basic_verify:   '能力验证',
-  closing:        '收尾',
+  project_dive: '项目深挖',
+  basic_verify: '能力验证',
+  closing: '收尾',
 };
 
 const STAGE_ORDER = ['opening', 'intro', 'intro_followup', 'project_dive', 'basic_verify', 'closing'];
 
 export default function InterviewRoom() {
-  const { id }      = useParams();
-  const navigate     = useNavigate();
-  const inputRef     = useRef(null);
-  const messagesRef  = useRef(null);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const inputRef = useRef(null);
+  const messagesRef = useRef(null);
   const [inputText, setInputText] = useState('');
   const [sessionInfo, setSessionInfo] = useState(null);
   const [ending, setEnding] = useState(false);
@@ -104,14 +104,14 @@ export default function InterviewRoom() {
         <div className="chat-area">
           <div className="chat-meta-bar">
             {isClosing ? (
-              <span className="tag tag-green" style={{fontSize:'11px'}}>● 面试结束</span>
+              <span className="tag tag-green" style={{ fontSize: '11px' }}>● 面试结束</span>
             ) : voiceMode ? (
-              <span className="tag tag-accent" style={{fontSize:'11px'}}>● 语音模式</span>
+              <span className="tag tag-accent" style={{ fontSize: '11px' }}>● 语音模式</span>
             ) : (
-              <span className="tag tag-warn" style={{fontSize:'11px'}}>● 进行中</span>
+              <span className="tag tag-warn" style={{ fontSize: '11px' }}>● 进行中</span>
             )}
-            <span style={{color:'var(--text-muted)',fontSize:'11px'}}>{STAGE_LABELS[stage] || stage}阶段</span>
-            <div className="progress-steps" style={{marginLeft:'auto'}}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{STAGE_LABELS[stage] || stage}阶段</span>
+            <div className="progress-steps" style={{ marginLeft: 'auto' }}>
               {STAGE_ORDER.map((s, i) => (
                 <div
                   key={s}
@@ -156,12 +156,12 @@ export default function InterviewRoom() {
               </div>
 
               {isClosing ? (
-                <div className="input-area" style={{justifyContent:'center', gap:'12px'}}>
-                  <span style={{color:'var(--text-muted)', fontSize:'13px'}}>
+                <div className="input-area" style={{ justifyContent: 'center', gap: '12px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
                     {ending ? '正在生成报告，即将跳转...' : '面试已结束'}
                   </span>
                   {!ending && (
-                    <button className="btn btn-primary" onClick={handleEndAndReport} style={{padding:'8px 20px', fontSize:'13px'}}>
+                    <button className="btn btn-primary" onClick={handleEndAndReport} style={{ padding: '8px 20px', fontSize: '13px' }}>
                       结束面试并查看报告
                     </button>
                   )}
@@ -185,7 +185,7 @@ export default function InterviewRoom() {
                     disabled={isStreaming}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
                     </svg>
                   </button>
                   <button className="btn btn-primary" onClick={handleSend} disabled={isStreaming || !inputText.trim()}>
@@ -208,11 +208,11 @@ export default function InterviewRoom() {
                 </div>
                 <div className="side-item">
                   <span>{sessionInfo.jobCategory === 'tech' ? '技术栈' : '专业技能'}</span>
-                  <span style={{fontSize:'11px',color:'var(--text-muted)'}}>{sessionInfo.parsed.techStack?.slice(0,3).join(' · ')}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{sessionInfo.parsed.techStack?.slice(0, 3).join(' · ')}</span>
                 </div>
-                <div className="side-item" style={{border:'none'}}>
+                <div className="side-item" style={{ border: 'none' }}>
                   <span>{sessionInfo.jobCategory === 'tech' ? '核心项目' : '核心经历'}</span>
-                  <span style={{fontSize:'11px',color:'var(--text-muted)'}}>{sessionInfo.parsed.projects?.map(p => p.name).join('、')}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{sessionInfo.parsed.projects?.map(p => p.name).join('、')}</span>
                 </div>
               </>
             )}
@@ -220,7 +220,7 @@ export default function InterviewRoom() {
 
           <div className="side-section">
             <div className="side-title">当前阶段</div>
-            <div style={{fontSize:'12px',color:'var(--text-secondary)',lineHeight:'1.6'}}>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               {STAGE_LABELS[stage]}
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function InterviewRoom() {
           {!isClosing && (
             <button
               className="btn btn-ghost btn-sm end-btn"
-              style={{color:'var(--warn)',borderColor:'var(--warn)',marginTop:'8px'}}
+              style={{ color: 'var(--warn)', borderColor: 'var(--warn)', marginTop: '8px' }}
               onClick={handleEnd}
               disabled={ending}
             >
