@@ -1,17 +1,8 @@
 // 侧边栏导航组件
 import { NavLink } from 'react-router-dom';
-import { useAppState } from '../store/AppContext';
 import './Sidebar.css';
 
 export default function Sidebar() {
-  const { providers } = useAppState();
-
-  // 查找第一个已连接的供应商
-  const connectedProvider = Object.entries(providers).find(([, p]) => p.isConnected);
-  const statusText = connectedProvider
-    ? `${connectedProvider[0]} · 已就绪`
-    : '未配置模型';
-
   return (
     <aside className="sidebar">
       <div className="logo">
@@ -60,13 +51,6 @@ export default function Sidebar() {
           模型设置
         </NavLink>
       </nav>
-
-      <div className="sidebar-footer">
-        <div className="model-badge">
-          <div className={`model-dot ${connectedProvider ? '' : 'off'}`}></div>
-          {statusText}
-        </div>
-      </div>
     </aside>
   );
 }

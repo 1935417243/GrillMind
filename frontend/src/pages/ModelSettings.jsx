@@ -134,37 +134,55 @@ export default function ModelSettings() {
   const getProviderModelCount = (name) => getProvider(name)?.models?.length || 0;
 
   /**
+   * ── 深度思考开关规则配置 ──
+   * 新增供应商/模型时只需在对应规则表中追加条目即可
+   */
+
+  // 任务级规则：某些任务强制禁用深度思考（优先级最高）
+  const TASK_THINKING_RULES = {
+    interviewModel: { visible: true, enabled: false, tooltip: '面试对话需保证实时响应速度，不支持开启深度思考' },
+  };
+
+  // 模型级规则：按 match 函数匹配模型名，优先级按数组顺序（先匹配先命中）
+  const MODEL_THINKING_RULES = [
+    { match: m => m === 'deepseek-reasoner', state: { visible: true, enabled: false, forceOn: true, tooltip: '当前模型仅支持深度思考' } },
+    { match: m => m === 'deepseek-chat',     state: { visible: true, enabled: false, tooltip: '此模型不支持开启深度思考' } },
+    // 扩展示例：{ match: m => m.startsWith('qwen3-'), state: { visible: true, enabled: true, tooltip: '' } },
+  ];
+
+  // 供应商级默认规则：模型级未命中时，按供应商决定默认行为
+  const PROVIDER_THINKING_DEFAULTS = {
+    bailian:  { visible: true, enabled: true, tooltip: '' },
+    // 扩展示例：openai: { visible: true, enabled: false, tooltip: '该供应商暂不支持深度思考' },
+  };
+
+  /**
    * 判断深度思考开关是否应该显示和可用
+   * 优先级：任务级 > 模型级 > 供应商级 > 兜底
    * @param {string} taskKey - 任务标识（如 'parseModel'）
    * @param {string} modelValue - 当前选择的模型值 'provider::model'
-   * @returns {{ visible: boolean, enabled: boolean, tooltip: string }}
+   * @returns {{ visible: boolean, enabled: boolean, tooltip: string, forceOn?: boolean }}
    */
   const getThinkingState = (taskKey, modelValue) => {
-    // 面试对话：始终置灰锁定
-    if (taskKey === 'interviewModel') {
-      return { visible: true, enabled: false, tooltip: '面试对话需保证实时响应速度，不支持开启深度思考' };
+    // 1. 任务级规则
+    if (TASK_THINKING_RULES[taskKey]) return TASK_THINKING_RULES[taskKey];
+
+    // 未选择模型时隐藏
+    if (!modelValue) return { visible: false, enabled: false, tooltip: '' };
+
+    const [provider, ...rest] = modelValue.split('::');
+    const modelName = rest.join('::').toLowerCase();
+
+    // 2. 模型级规则
+    for (const rule of MODEL_THINKING_RULES) {
+      if (rule.match(modelName)) return rule.state;
     }
 
-    // 选了 DeepSeek 系列模型时，隐藏开关
-    if (modelValue) {
-      const modelName = modelValue.split('::')[1] || '';
-      if (modelName.toLowerCase().includes('deepseek')) {
-        return { visible: false, enabled: false, tooltip: '' };
-      }
-    }
+    // 3. 供应商级默认
+    if (PROVIDER_THINKING_DEFAULTS[provider]) return PROVIDER_THINKING_DEFAULTS[provider];
 
-    // 选了 bailian 供应商的模型 → 可用
-    if (modelValue && modelValue.startsWith('bailian::')) {
-      return { visible: true, enabled: true, tooltip: '' };
-    }
-
-    // 其他模型（未选择 / 不支持深度思考）
-    if (modelValue) {
-      return { visible: true, enabled: false, tooltip: '该模型不支持深度思考' };
-    }
-
-    // 未选择模型
-    return { visible: false, enabled: false, tooltip: '' };
+    // 4. 兜底：显示开关但置灰
+    return { visible: true, enabled: false, tooltip: '该模型不支持深度思考' };
   };
 
   /** 深度思考 Toggle 组件 */
@@ -172,7 +190,7 @@ export default function ModelSettings() {
     const state = getThinkingState(taskKey, modelValue);
     if (!state.visible) return null;
 
-    const checked = binding[thinkingKey];
+    const checked = state.forceOn ? true : (!state.enabled ? false : binding[thinkingKey]);
 
     const toggle = (
       <label className={`thinking-toggle ${!state.enabled ? 'disabled' : ''}`}>
