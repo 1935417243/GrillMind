@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppState, useAppDispatch } from '../store/AppContext';
-import { sessionApi, modelApi, resumeApi, jobPositionApi } from '../api/client';
+import { sessionApi, resumeApi, jobPositionApi } from '../api/client';
 import CustomSelect from '../components/CustomSelect';
 import './StartInterview.css';
 
@@ -29,13 +29,12 @@ export default function StartInterview() {
   const [depth,      setDepth]      = useState('standard');
   const [difficulty, setDifficulty] = useState('pressure');
   const [focus,      setFocus]      = useState('mixed');
-  const [binding,    setBinding]    = useState(null);
+
   const [starting,   setStarting]   = useState(false);
   const [jobList,    setJobList]    = useState([]);  // 已启用岗位列表
 
-  // 加载模型绑定 + 岗位列表
+  // 加载岗位列表
   useEffect(() => {
-    modelApi.getBinding().then(setBinding).catch(() => {});
     jobPositionApi.list().then(data => {
       const enabled = data.filter(p => p.enabled);
       setJobList(enabled);
@@ -174,27 +173,7 @@ export default function StartInterview() {
           </div>
         </div>
 
-        {/* 模型绑定 */}
-        <div className="card">
-          <div className="card-label">当前模型绑定</div>
-          <div className="model-summary">
-            {binding?.interviewModel ? (
-              <>
-                <div className="model-tag">
-                  <span style={{color:'var(--accent)'}}>●</span>
-                  简历解析 → {binding.parseModel?.split('::')[1] || '未设置'}
-                </div>
-                <div className="model-tag">
-                  <span style={{color:'var(--accent)'}}>●</span>
-                  面试对话 → {binding.interviewModel?.split('::')[1] || '未设置'}
-                </div>
-              </>
-            ) : (
-              <span style={{color:'var(--text-muted)', fontSize:'12px'}}>尚未配置模型</span>
-            )}
-            <Link to="/settings" className="btn btn-ghost btn-sm" style={{marginLeft:'auto'}}>修改配置</Link>
-          </div>
-        </div>
+
 
         {/* 开始按钮 */}
         <div className="start-footer">
@@ -202,7 +181,7 @@ export default function StartInterview() {
             className="btn btn-primary"
             style={{padding:'10px 28px',fontSize:'14px'}}
             onClick={handleStart}
-            disabled={!activeResume || activeResume.parseStatus !== 'done' || !binding?.interviewModel || starting}
+            disabled={!activeResume || activeResume.parseStatus !== 'done' || starting}
           >
             {starting ? '创建中...' : '开始面试'}
           </button>

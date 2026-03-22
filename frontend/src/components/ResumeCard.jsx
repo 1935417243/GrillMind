@@ -51,10 +51,8 @@ export default function ResumeCard({ resume, onActivate, onDelete, onView, onRep
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* 使用状态标签 */}
-        {resume.isActive ? (
+        {resume.isActive && (
           <span className="tag tag-green">当前使用</span>
-        ) : (
-          <span className="tag tag-gray">未使用</span>
         )}
 
         {/* 解析状态标签 */}
