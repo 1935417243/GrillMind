@@ -313,7 +313,6 @@ export default function ModelSettings() {
 
         <div className="card-label" style={{marginBottom:'8px'}}>任务模型分配</div>
         <div className="thinking-tip">
-          <span className="thinking-tip-icon">💡</span>
           深度思考模式会增加响应时间，建议仅对简历解析/报告生成启用
         </div>
         <div className="card">
@@ -386,7 +385,6 @@ export default function ModelSettings() {
 
         <div className="card-label" style={{marginBottom:'8px'}}>语音通话配置</div>
         <div className="thinking-tip">
-          <span className="thinking-tip-icon">🎙️</span>
           语音通话功能需要百炼 API Key 已配置且连接成功
         </div>
         <div className="card">
@@ -443,23 +441,23 @@ export default function ModelSettings() {
               options={
                 (binding.ttsModel === 'cosyvoice-v1' || binding.ttsModel === 'cosyvoice-v2')
                   ? [
-                      { value: 'longxiaochun', label: 'longxiaochun（温柔女声）' },
-                      { value: 'longhua', label: 'longhua（标准男声）' },
-                      { value: 'longwan', label: 'longwan（温婉女声）' },
-                      { value: 'longshu', label: 'longshu（有声书男声）' },
-                      { value: 'longshuo', label: 'longshuo（商务男声）' },
-                      { value: 'longjing', label: 'longjing（甜美女声）' },
-                      { value: 'longmiao', label: 'longmiao（活泼女声）' },
-                      { value: 'longyue', label: 'longyue（温暖男声）' },
-                      { value: 'longlaotie', label: 'longlaotie（东北老铁）' },
+                      { value: 'longxiaochun', label: '温柔女声' },
+                      { value: 'longhua', label: '标准男声' },
+                      { value: 'longwan', label: '温婉女声' },
+                      { value: 'longshu', label: '有声书男声' },
+                      { value: 'longshuo', label: '商务男声' },
+                      { value: 'longjing', label: '甜美女声' },
+                      { value: 'longmiao', label: '活泼女声' },
+                      { value: 'longyue', label: '温暖男声' },
+                      { value: 'longlaotie', label: '东北老铁' },
                     ]
                   : [
-                      { value: 'longanyang', label: 'longanyang（阳光大男孩）' },
-                      { value: 'longanhuan', label: 'longanhuan（元气少女）' },
-                      { value: 'longange', label: 'longange（知性女声）' },
-                      { value: 'longanbiao', label: 'longanbiao（低沉男声）' },
-                      { value: 'longxiaochun', label: 'longxiaochun（温柔女声）' },
-                      { value: 'longhua', label: 'longhua（标准男声）' },
+                      { value: 'longanyang', label: '阳光大男孩' },
+                      { value: 'longanhuan', label: '元气少女' },
+                      { value: 'longange', label: '知性女声' },
+                      { value: 'longanbiao', label: '低沉男声' },
+                      { value: 'longxiaochun', label: '温柔女声' },
+                      { value: 'longhua', label: '标准男声' },
                     ]
               }
               value={binding.ttsVoice}
