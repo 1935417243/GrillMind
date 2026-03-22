@@ -11,10 +11,11 @@ import './VoiceCall.css';
 export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
   const [muted, setMuted] = useState(false);
   const [showSubtitle, setShowSubtitle] = useState(false);
-  const [connStatus, setConnStatus] = useState('connecting'); // connecting | connected | disconnected
+  const [connStatus, setConnStatus] = useState('connecting');
   const [aiSpeaking, setAiSpeaking] = useState(false);
   const [userSpeaking, setUserSpeaking] = useState(false);
-  const [subtitleText, setSubtitleText] = useState('');
+  // 对话气泡列表：[{ role: 'interviewer'|'user', text, isTyping, id }]
+  const [chatMessages, setChatMessages] = useState([]);
 
   // 引用
   const wsRef = useRef(null);
@@ -23,12 +24,26 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
   const processorRef = useRef(null);
   const vadFrameRef = useRef(null);
   const analyserRef = useRef(null);
-  const mutedRef = useRef(false); // 用 ref 避免闭包问题
+  const mutedRef = useRef(false);
+  const aiSpeakingRef = useRef(false); // 面试官说话时暂停用户音频采集
   // 音频播放相关
-  const audioQueueRef = useRef([]); // TTS 音频缓冲
+  const audioQueueRef = useRef([]);
+  const currentAudioRef = useRef(null);  // 当前播放的 Audio 实例
+  const chatEndRef = useRef(null);        // 聊天列表底部锚点
+  const msgIdRef = useRef(0);             // 消息 ID 计数器
+  const currentUserMsgIdRef = useRef(null);  // 当前用户消息 ID（ASR 未结束时持续更新）
+  const currentAiMsgIdRef = useRef(null);    // 当前 AI 消息 ID
 
-  // 同步 muted 到 ref
+  // 同步 muted / aiSpeaking 到 ref
   useEffect(() => { mutedRef.current = muted; }, [muted]);
+  useEffect(() => { aiSpeakingRef.current = aiSpeaking; }, [aiSpeaking]);
+
+  // 自动滚动到最新消息
+  useEffect(() => {
+    if (showSubtitle && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, showSubtitle]);
 
   // ── WebSocket 连接 ──
   const connectWS = useCallback(() => {
@@ -41,12 +56,9 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
+    ws.binaryType = 'arraybuffer';
 
-    ws.binaryType = 'arraybuffer'; // 确保接收的二进制为 ArrayBuffer
-
-    ws.onopen = () => {
-      console.log('✅ WebSocket 已连接');
-    };
+    ws.onopen = () => { console.log('✅ WebSocket 已连接'); };
 
     ws.onmessage = (event) => {
       if (typeof event.data === 'string') {
@@ -57,7 +69,6 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
           console.warn('无法解析服务端消息:', event.data);
         }
       } else {
-        // 二进制音频数据 → 播放
         handleAudioData(event.data);
       }
     };
@@ -78,27 +89,70 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
       case 'connected':
         setConnStatus('connected');
         break;
+
       case 'asr_result':
-        if (msg.text) setSubtitleText(msg.text);
+        if (msg.text) {
+          const currentId = currentUserMsgIdRef.current;
+          if (currentId != null) {
+            // 更新当前用户消息的文字
+            setChatMessages(prev =>
+              prev.map(m => m.id === currentId ? { ...m, text: msg.text } : m)
+            );
+          } else {
+            // 新建用户消息（同步设置 ref，不放在 setState 回调里）
+            const newId = ++msgIdRef.current;
+            currentUserMsgIdRef.current = newId;
+            setChatMessages(prev => [...prev, { id: newId, role: 'user', text: msg.text, isTyping: false }]);
+          }
+          // ASR 句子结束 → 置空当前用户消息 ID，下一句话新建
+          if (msg.isFinal) {
+            currentUserMsgIdRef.current = null;
+          }
+        }
         break;
+
       case 'ai_start':
         setAiSpeaking(true);
         setUserSpeaking(false);
-        // 清空音频缓冲，准备接收新的 TTS 音频
         audioQueueRef.current = [];
+        // 新建 AI 消息（打字动画）
+        {
+          const newId = ++msgIdRef.current;
+          currentAiMsgIdRef.current = newId;
+          setChatMessages(prev => [...prev, { id: newId, role: 'interviewer', text: '', isTyping: true }]);
+        }
         break;
+
       case 'ai_text':
-        if (msg.text) setSubtitleText(msg.text);
+        if (msg.text) {
+          const id = currentAiMsgIdRef.current;
+          if (id != null) {
+            setChatMessages(prev =>
+              prev.map(m => m.id === id ? { ...m, text: msg.text } : m)
+            );
+          }
+        }
         break;
+
       case 'ai_end':
-        setSubtitleText('');
-        // TTS 音频全部到达，合并播放
+        // 结束打字动画
+        {
+          const id = currentAiMsgIdRef.current;
+          if (id != null) {
+            setChatMessages(prev =>
+              prev.map(m => m.id === id ? { ...m, isTyping: false } : m)
+            );
+          }
+          currentAiMsgIdRef.current = null;
+        }
         playBufferedAudio();
         break;
+
       case 'error':
         console.error('服务端错误:', msg.message);
         setAiSpeaking(false);
         break;
+
       default:
         console.log('未知消息类型:', msg.type);
     }
@@ -106,7 +160,6 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
 
   // ── 缓冲收到的音频数据 ──
   const handleAudioData = useCallback((data) => {
-    // 直接缓冲，不立即播放
     if (data instanceof ArrayBuffer) {
       audioQueueRef.current.push(data);
     } else if (data instanceof Blob) {
@@ -124,105 +177,88 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
       return;
     }
 
-    // 合并所有 ArrayBuffer 为一个 Blob
     const blob = new Blob(chunks, { type: 'audio/mpeg' });
     const url = URL.createObjectURL(blob);
 
     const audio = new Audio(url);
+    currentAudioRef.current = audio;  // 保存引用，以便挂断时停止
     audio.onended = () => {
       setAiSpeaking(false);
+      currentAudioRef.current = null;
       URL.revokeObjectURL(url);
     };
     audio.onerror = () => {
       console.warn('音频播放失败');
       setAiSpeaking(false);
+      currentAudioRef.current = null;
       URL.revokeObjectURL(url);
     };
     audio.play().catch(err => {
       console.warn('音频播放被阻止:', err.message);
       setAiSpeaking(false);
+      currentAudioRef.current = null;
       URL.revokeObjectURL(url);
     });
   }, []);
 
-  // ── 麦克风采集（使用 ScriptProcessorNode 输出 PCM 16-bit） ──
+  // ── 麦克风采集（ScriptProcessorNode → PCM 16-bit） ──
   const startMicrophone = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          sampleRate: 16000,
-          echoCancellation: true,
-          noiseSuppression: true,
-        },
+        audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
       });
       mediaStreamRef.current = stream;
 
-      // 创建 AudioContext
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)({
-        sampleRate: 16000,
-      });
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
       audioContextRef.current = audioCtx;
 
       const source = audioCtx.createMediaStreamSource(stream);
 
-      // Analyser 用于 VAD
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 256;
       source.connect(analyser);
       analyserRef.current = analyser;
       startVAD(analyser);
 
-      // ScriptProcessorNode 用于采集 PCM 数据并发送
-      // bufferSize=4096，单声道输入输出
       const processor = audioCtx.createScriptProcessor(4096, 1, 1);
       processorRef.current = processor;
 
       processor.onaudioprocess = (e) => {
-        // 静音时不发送
-        if (mutedRef.current) return;
-
+        // 静音或面试官正在说话时，不发送音频
+        if (mutedRef.current || aiSpeakingRef.current) return;
         const ws = wsRef.current;
         if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-        // 获取 Float32 音频数据
         const float32 = e.inputBuffer.getChannelData(0);
-
-        // 转换为 PCM 16-bit little-endian
         const pcm16 = new Int16Array(float32.length);
         for (let i = 0; i < float32.length; i++) {
           const s = Math.max(-1, Math.min(1, float32[i]));
           pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
-
-        // 发送二进制
         ws.send(pcm16.buffer);
       };
 
       source.connect(processor);
-      processor.connect(audioCtx.destination); // 必须连接 destination 才能触发 onaudioprocess
-
+      processor.connect(audioCtx.destination);
       console.log('🎤 麦克风采集已启动 (PCM 16-bit, 16kHz)');
     } catch (err) {
       console.error('❌ 麦克风权限获取失败:', err);
     }
   }, []);
 
-  // ── 语音活动检测 (VAD) - 驱动用户波形动画 ──
+  // ── VAD ──
   const startVAD = useCallback((analyser) => {
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
     const check = () => {
       analyser.getByteFrequencyData(dataArray);
       const avg = dataArray.reduce((sum, v) => sum + v, 0) / dataArray.length;
       setUserSpeaking(avg > 15);
       vadFrameRef.current = requestAnimationFrame(check);
     };
-
     vadFrameRef.current = requestAnimationFrame(check);
   }, []);
 
-  // ── 组件挂载：延迟连接 WS + 启动麦克风（防止 React Strict Mode 双重连接） ──
+  // ── 组件挂载 ──
   useEffect(() => {
     const timer = setTimeout(() => {
       connectWS();
@@ -231,20 +267,16 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
 
     return () => {
       clearTimeout(timer);
-      // 清理 VAD
-      if (vadFrameRef.current) {
-        cancelAnimationFrame(vadFrameRef.current);
-      }
-      // 断开 ScriptProcessor
-      if (processorRef.current) {
-        processorRef.current.disconnect();
-      }
-      // 停止麦克风
+      if (vadFrameRef.current) cancelAnimationFrame(vadFrameRef.current);
+      if (processorRef.current) processorRef.current.disconnect();
       mediaStreamRef.current?.getTracks().forEach(t => t.stop());
-      // 关闭 AudioContext（采集用）
       audioContextRef.current?.close();
       audioQueueRef.current = [];
-      // 关闭 WebSocket
+      // 停止正在播放的音频
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: 'hangup' }));
         wsRef.current.close();
@@ -265,12 +297,15 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
     );
   };
 
-  // 连接状态指示
-  const connLabel = {
-    connecting: '连接中…',
-    connected: '',
-    disconnected: '已断开',
-  };
+  // 打字动画（三个点）
+  const TypingDots = () => (
+    <div className="vc-typing-dots">
+      <span /><span /><span />
+    </div>
+  );
+
+  // 连接状态
+  const connLabel = { connecting: '连接中…', connected: '', disconnected: '已断开' };
 
   return (
     <>
@@ -279,37 +314,64 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
           <div className="voice-conn-status">{connLabel[connStatus]}</div>
         )}
 
-        {/* 面试官区域 */}
-        <div className="voice-participant">
-          <div className="voice-avatar interviewer">面</div>
-          <div className="voice-status">
-            <span className="status-role">面试官</span>
-            {' · '}
-            {aiSpeaking ? '发言中' : '等待中'}
+        {showSubtitle ? (
+          /* ── 对话气泡列表模式 ── */
+          <div className="vc-chat-list">
+            {chatMessages.length === 0 && (
+              <div className="vc-chat-empty">对话内容将在这里显示…</div>
+            )}
+            {chatMessages.map(msg => (
+              <div key={msg.id} className={`vc-chat-row ${msg.role}`}>
+                {msg.role === 'interviewer' && (
+                  <div className="vc-chat-avatar interviewer">面</div>
+                )}
+                <div className={`vc-chat-bubble ${msg.role}`}>
+                  {msg.isTyping && !msg.text ? (
+                    <TypingDots />
+                  ) : (
+                    <>
+                      {msg.text}
+                      {msg.isTyping && <TypingDots />}
+                    </>
+                  )}
+                </div>
+                {msg.role === 'user' && (
+                  <div className="vc-chat-avatar user">你</div>
+                )}
+              </div>
+            ))}
+            <div ref={chatEndRef} />
           </div>
-          {renderWaveform('interviewer')}
-          {showSubtitle && (
-            <div className="voice-subtitle">{subtitleText || '\u00A0'}</div>
-          )}
-        </div>
+        ) : (
+          /* ── 头像 + 波形模式 ── */
+          <>
+            <div className="voice-participant">
+              <div className="voice-avatar interviewer">面</div>
+              <div className="voice-status">
+                <span className="status-role">面试官</span>
+                {' · '}
+                {aiSpeaking ? '发言中' : '等待中'}
+              </div>
+              {renderWaveform('interviewer')}
+            </div>
 
-        <div className="voice-divider" />
+            <div className="voice-divider" />
 
-        {/* 用户区域 */}
-        <div className="voice-participant">
-          <div className="voice-avatar user">你</div>
-          <div className="voice-status">
-            <span className="status-role">
-              {muted ? '已静音' : userSpeaking ? '正在聆听…' : '等待发言…'}
-            </span>
-          </div>
-          {renderWaveform('user')}
-        </div>
+            <div className="voice-participant">
+              <div className="voice-avatar user">你</div>
+              <div className="voice-status">
+                <span className="status-role">
+                  {muted ? '已静音' : userSpeaking ? '正在聆听…' : '等待发言…'}
+                </span>
+              </div>
+              {renderWaveform('user')}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* 底部操作栏 */}
+      {/* 底部操作栏（不变） */}
       <div className="voice-controls">
-        {/* 静音 */}
         <button
           className={`voice-ctrl-btn ${muted ? 'active' : ''}`}
           onClick={() => setMuted(prev => !prev)}
@@ -335,7 +397,6 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
           <span>{muted ? '已静音' : '静音'}</span>
         </button>
 
-        {/* 显示字幕 */}
         <button
           className={`voice-ctrl-btn ${showSubtitle ? 'active' : ''}`}
           onClick={() => setShowSubtitle(prev => !prev)}
@@ -347,7 +408,6 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
           <span>字幕</span>
         </button>
 
-        {/* 挂断 */}
         <button className="voice-ctrl-btn hangup" onClick={onHangup}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91" />
@@ -356,7 +416,6 @@ export default function VoiceCall({ sessionId, onHangup, onSwitchText }) {
           <span>挂断</span>
         </button>
 
-        {/* 切文字 */}
         <button className="voice-ctrl-btn" onClick={onSwitchText}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />

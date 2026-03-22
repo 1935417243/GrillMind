@@ -115,6 +115,7 @@ export class VoiceSession {
               format: 'pcm',
               sample_rate: 16000,
               disfluency_removal_enabled: true,
+              max_sentence_silence: 2000, // 静默 2 秒后才算一句话结束
             },
             input: {},
           },
