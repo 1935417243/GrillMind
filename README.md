@@ -257,6 +257,10 @@ sudo xattr -rd com.apple.quarantine "/Applications/GrillMind.app"
 | 面试对话 / 简历解析 / 报告生成 | DeepSeek **或** 阿里百炼 | 至少配置一个即可使用核心功能 |
 | 语音通话（ASR + TTS） | 阿里百炼 | 语音面试功能必需 |
 
+**🔑 API Key 申请地址：**
+- **阿里百炼**：[bailian.console.aliyun.com](https://bailian.console.aliyun.com/cn-beijing/?spm=5176.29619931.J_SEsSjsNv72yRuRFS2VknO.2.74cd10d7Gq6QTi&tab=model#/model-market)
+- **DeepSeek**：[platform.deepseek.com](https://platform.deepseek.com/api_keys)
+
 </details>
 
 ---
