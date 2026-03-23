@@ -7,7 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 上传文件存储目录
-export const UPLOADS_DIR = path.join(__dirname, '../../uploads');
+// 在 Electron 环境下使用用户数据目录（避免 Windows 安装目录无写权限）
+const userDataDir = process.env.GRILLMIND_USER_DATA;
+export const UPLOADS_DIR = userDataDir
+  ? path.join(userDataDir, 'uploads')
+  : path.join(__dirname, '../../uploads');
 
 /**
  * 确保上传目录存在

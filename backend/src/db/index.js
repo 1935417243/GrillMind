@@ -8,7 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 数据库文件路径
-const DB_PATH = path.join(__dirname, '../../data/grillmind.db');
+// 在 Electron 环境下使用用户数据目录（避免 Windows 安装目录无写权限）
+const userDataDir = process.env.GRILLMIND_USER_DATA;
+const DB_PATH = userDataDir
+  ? path.join(userDataDir, 'data', 'grillmind.db')
+  : path.join(__dirname, '../../data/grillmind.db');
 
 // 确保 data 目录存在
 const dataDir = path.dirname(DB_PATH);

@@ -80,6 +80,10 @@ function startBackend() {
         PORT: String(BACKEND_PORT),
         // 告诉 Electron 的 Node 不要走 Electron 的特殊逻辑
         ELECTRON_RUN_AS_NODE: '1',
+        // 将用户数据目录传给后端，用于存储数据库、上传文件等
+        // macOS: ~/Library/Application Support/GrillMind/
+        // Windows: %APPDATA%/GrillMind/
+        GRILLMIND_USER_DATA: app.getPath('userData'),
       },
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: path.join(__dirname, '..', 'backend'),

@@ -65,7 +65,9 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
+      "createDesktopShortcut": true,
+      "shortcutName": "GrillMind",
+      "uninstallDisplayName": "GrillMind"
     }
   }
 }
