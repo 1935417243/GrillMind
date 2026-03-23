@@ -3,15 +3,69 @@
   "version": "0.1.0",
   "private": true,
   "description": "智面 · AI 技术面试模拟器",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && node --watch src/index.js",
     "dev:frontend": "cd frontend && npx vite",
     "build": "cd frontend && npx vite build --outDir ../backend/public",
     "start": "cd backend && node src/index.js",
-    "db:init": "cd backend && node src/db/init.js"
+    "db:init": "cd backend && node src/db/init.js",
+    "electron:dev": "npm run build && electron .",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:mac": "npm run build && electron-builder --mac",
+    "electron:build:win": "npm run build && electron-builder --win"
   },
   "devDependencies": {
-    "concurrently": "^8.0.0"
+    "concurrently": "^8.0.0",
+    "electron": "^35.7.5",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.grillmind.app",
+    "productName": "GrillMind",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "backend/**/*",
+      "!backend/node_modules",
+      "!backend/data/**",
+      "!backend/uploads/**",
+      "!frontend/**",
+      "!node_modules/**"
+    ],
+    "extraResources": [],
+    "afterPack": "./electron/afterPack.js",
+    "asar": false,
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": null
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   }
 }
