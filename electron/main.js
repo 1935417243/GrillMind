@@ -1,6 +1,7 @@
 // Electron 主进程入口文件
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, Menu } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('child_process');
 
 // 禁用硬件加速以避免在某些系统上的兼容性问题
@@ -8,9 +9,58 @@ const { spawn } = require('child_process');
 
 let mainWindow = null;
 let backendProcess = null;
+let logStream = null;
 
 // 后端服务端口
 const BACKEND_PORT = 3001;
+
+/**
+ * 初始化日志文件
+ * 日志保存在用户数据目录下的 logs 文件夹中：
+ * - macOS: ~/Library/Application Support/GrillMind/logs/
+ * - Windows: %APPDATA%/GrillMind/logs/
+ */
+function initLogger() {
+  const userDataPath = app.getPath('userData');
+  const logsDir = path.join(userDataPath, 'logs');
+
+  // 确保日志目录存在
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+  }
+
+  // 按日期命名日志文件
+  const date = new Date().toISOString().split('T')[0];
+  const logFile = path.join(logsDir, `grillmind-${date}.log`);
+
+  logStream = fs.createWriteStream(logFile, { flags: 'a' });
+
+  // 写入启动标记
+  const startMark = `\n${'='.repeat(60)}\n[${new Date().toISOString()}] GrillMind 启动\n${'='.repeat(60)}\n`;
+  logStream.write(startMark);
+
+  console.log(`📝 日志文件: ${logFile}`);
+  return logFile;
+}
+
+/**
+ * 写入日志
+ */
+function writeLog(tag, message) {
+  const timestamp = new Date().toISOString();
+  const line = `[${timestamp}] [${tag}] ${message}`;
+  if (logStream) {
+    logStream.write(line + '\n');
+  }
+  // 同时在控制台输出
+  if (tag === '错误') {
+    console.error(line);
+  } else {
+    console.log(line);
+  }
+}
+
+
 
 /**
  * 启动 Fastify 后端服务
@@ -38,8 +88,8 @@ function startBackend() {
     let started = false;
 
     backendProcess.stdout.on('data', (data) => {
-      const output = data.toString();
-      console.log('[后端]', output);
+      const output = data.toString().trim();
+      writeLog('后端', output);
       // 检测后端启动成功
       if (!started && output.includes('智面后端已启动')) {
         started = true;
@@ -48,16 +98,16 @@ function startBackend() {
     });
 
     backendProcess.stderr.on('data', (data) => {
-      console.error('[后端错误]', data.toString());
+      writeLog('错误', data.toString().trim());
     });
 
     backendProcess.on('error', (err) => {
-      console.error('[后端进程错误]', err);
+      writeLog('错误', `后端进程错误: ${err.message}`);
       reject(err);
     });
 
     backendProcess.on('exit', (code) => {
-      console.log('[后端] 进程退出，退出码:', code);
+      writeLog('后端', `进程退出，退出码: ${code}`);
       backendProcess = null;
     });
 
@@ -65,7 +115,7 @@ function startBackend() {
     setTimeout(() => {
       if (!started) {
         started = true;
-        console.log('[后端] 启动超时，尝试继续...');
+        writeLog('警告', '后端启动超时，尝试继续...');
         resolve();
       }
     }, 10000);
@@ -121,12 +171,15 @@ function stopBackend() {
 // App 就绪后启动
 app.whenReady().then(async () => {
   try {
-    console.log('正在启动后端服务...');
+    initLogger();
+    writeLog('主进程', '正在启动后端服务...');
     await startBackend();
-    console.log('后端已启动，创建窗口...');
+    writeLog('主进程', '后端已启动，创建窗口...');
+    // 隐藏默认菜单栏（去掉 Windows 上的 File/Edit/View 等菜单）
+    Menu.setApplicationMenu(null);
     createWindow();
   } catch (err) {
-    console.error('启动失败:', err);
+    writeLog('错误', `启动失败: ${err.message}`);
     app.quit();
   }
 });
