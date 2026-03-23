@@ -50,12 +50,9 @@ jobs:
       - name: Build Electron app
         run: npx electron-builder --${{ matrix.platform }}
         env:
-          # 如果需要 macOS 签名，在 GitHub Secrets 中配置以下变量
-          # CSC_LINK: ${{ secrets.CSC_LINK }}
-          # CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 上传构建产物
+      # 上传构建产物（所有触发方式都保留 Artifacts）
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -65,3 +62,45 @@ jobs:
             dist-electron/*.exe
             dist-electron/*.msi
           if-no-files-found: ignore
+
+  # 当通过 tag 触发时，自动创建 GitHub Release 并上传安装包
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      # 下载所有平台的构建产物
+      - name: Download Mac artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: GrillMind-mac
+          path: release-assets
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: GrillMind-win
+          path: release-assets
+
+      # 创建 GitHub Release 并上传安装包
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: GrillMind ${{ github.ref_name }}
+          body: |
+            ## 下载安装包
+
+            | 平台 | 文件 |
+            |------|------|
+            | macOS (Apple Silicon) | `GrillMind-*-arm64.dmg` |
+            | Windows | `GrillMind-Setup-*.exe` |
+
+            ### 安装说明
+            - **macOS**：双击 `.dmg`，拖到「应用程序」文件夹。首次打开如提示安全警告，请在「系统设置 → 隐私与安全性」中允许。
+            - **Windows**：双击 `.exe` 安装向导，一路下一步。首次打开如提示 SmartScreen 警告，点击「更多信息 → 仍要运行」。
+          files: release-assets/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
