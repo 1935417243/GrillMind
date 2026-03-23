@@ -10,6 +10,10 @@ on:
     tags:
       - 'v*'
 
+# 赋予 workflow 写权限（用于创建 Release）
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -46,11 +50,9 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      # 打包 Electron 应用
+      # 打包 Electron 应用（--publish never 禁止 electron-builder 自动发布）
       - name: Build Electron app
-        run: npx electron-builder --${{ matrix.platform }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --${{ matrix.platform }} --publish never
 
       # 上传构建产物（所有触发方式都保留 Artifacts）
       - name: Upload artifacts
