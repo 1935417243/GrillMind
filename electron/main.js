@@ -1,5 +1,5 @@
 // Electron 主进程入口文件
-const { app, BrowserWindow, shell, Menu } = require('electron');
+const { app, BrowserWindow, shell, Menu, session, systemPreferences } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -143,6 +143,26 @@ function createWindow() {
     show: false, // 先隐藏，等加载完再显示
   });
 
+  // 处理渲染进程的权限检查（getUserMedia 调用前的预检查）
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+    // 允许媒体设备（麦克风）权限检查
+    if (permission === 'media') {
+      return true;
+    }
+    return false;
+  });
+
+  // 处理渲染进程的权限请求（如麦克风、摄像头等）
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    // 允许媒体设备（麦克风）权限
+    if (permission === 'media') {
+      callback(true);
+      return;
+    }
+    // 其他权限默认拒绝
+    callback(false);
+  });
+
   // 加载前端页面（通过后端静态文件托管）
   mainWindow.loadURL(`http://localhost:${BACKEND_PORT}`);
 
@@ -176,6 +196,13 @@ function stopBackend() {
 app.whenReady().then(async () => {
   try {
     initLogger();
+
+    // macOS: 主动请求麦克风权限，触发系统授权弹窗
+    if (process.platform === 'darwin') {
+      const micAccess = await systemPreferences.askForMediaAccess('microphone');
+      writeLog('主进程', `麦克风权限: ${micAccess ? '已授权' : '被拒绝'}`);
+    }
+
     writeLog('主进程', '正在启动后端服务...');
     await startBackend();
     writeLog('主进程', '后端已启动，创建窗口...');
@@ -188,12 +215,10 @@ app.whenReady().then(async () => {
   }
 });
 
-// 所有窗口关闭时退出（macOS 除外）
+// 所有窗口关闭时退出应用
 app.on('window-all-closed', () => {
   stopBackend();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 // macOS 点击 Dock 图标重新打开窗口

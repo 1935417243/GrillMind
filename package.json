@@ -49,7 +49,12 @@
           ]
         }
       ],
-      "icon": null
+      "icon": null,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "智面需要使用麦克风进行语音面试"
+      },
+      "entitlements": "electron/entitlements.mac.plist",
+      "entitlementsInherit": "electron/entitlements.mac.plist"
     },
     "win": {
       "target": [
