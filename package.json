@@ -1,6 +1,6 @@
 {
   "name": "grillmind",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "智面 · AI 技术面试模拟器",
   "main": "electron/main.js",
