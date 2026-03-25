@@ -3,16 +3,69 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px 24px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
 }
+
 .provider-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
 }
-.provider-name { font-size: 14px; font-weight: 500; }
+
+.provider-header:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.provider-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 展开/收起箭头 */
+.provider-arrow {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.provider-arrow.up {
+  transform: rotate(180deg);
+}
+
+/* 折叠内容区 */
+.provider-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.provider-card.expanded .provider-body {
+  grid-template-rows: 1fr;
+}
+
+.provider-body-inner {
+  overflow: hidden;
+  padding: 0 20px;
+}
+
+.provider-card.expanded .provider-body-inner {
+  padding: 0 20px 16px;
+}
+
+.provider-name {
+  font-size: 14px;
+  font-weight: 500;
+  width: 80px;
+  flex-shrink: 0;
+}
+
 .status-badge {
   display: flex;
   align-items: center;
@@ -20,10 +73,24 @@
   font-size: 11px;
   font-family: 'DM Mono', monospace;
 }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; }
-.status-dot.ok { background: var(--accent); }
-.status-dot.saved { background: #d4a843; }
-.status-dot.off { background: var(--text-muted); }
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot.ok {
+  background: var(--accent);
+}
+
+.status-dot.saved {
+  background: #d4a843;
+}
+
+.status-dot.off {
+  background: var(--text-muted);
+}
 
 .binding-row {
   display: flex;
@@ -34,13 +101,18 @@
   font-size: 13px;
   gap: 16px;
 }
-.binding-row:last-child { border-bottom: none; }
+
+.binding-row:last-child {
+  border-bottom: none;
+}
+
 .binding-label {
   color: var(--text-secondary);
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 .binding-hint {
   font-size: 10px;
   color: var(--text-muted);
@@ -67,6 +139,7 @@
   color: var(--text-secondary);
   line-height: 1.5;
 }
+
 .thinking-tip-icon {
   font-size: 16px;
   flex-shrink: 0;
@@ -80,12 +153,14 @@
   flex-shrink: 0;
   position: relative;
 }
+
 .thinking-toggle-label {
   font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
   user-select: none;
 }
+
 .thinking-toggle {
   position: relative;
   width: 36px;
@@ -93,12 +168,14 @@
   flex-shrink: 0;
   cursor: pointer;
 }
+
 .thinking-toggle input {
   opacity: 0;
   width: 0;
   height: 0;
   position: absolute;
 }
+
 .thinking-toggle-track {
   position: absolute;
   inset: 0;
@@ -106,9 +183,11 @@
   border-radius: 10px;
   transition: background 0.2s;
 }
-.thinking-toggle input:checked + .thinking-toggle-track {
+
+.thinking-toggle input:checked+.thinking-toggle-track {
   background: var(--accent);
 }
+
 .thinking-toggle-track::after {
   content: '';
   position: absolute;
@@ -120,7 +199,8 @@
   border-radius: 50%;
   transition: transform 0.2s;
 }
-.thinking-toggle input:checked + .thinking-toggle-track::after {
+
+.thinking-toggle input:checked+.thinking-toggle-track::after {
   transform: translateX(16px);
 }
 
@@ -129,6 +209,7 @@
   cursor: not-allowed;
   opacity: 0.45;
 }
+
 .thinking-toggle.disabled .thinking-toggle-track {
   background: var(--border);
 }
@@ -138,6 +219,7 @@
   position: relative;
   display: inline-flex;
 }
+
 .thinking-tooltip {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -154,8 +236,9 @@
   opacity: 0;
   transition: opacity 0.15s;
   z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
+
 .thinking-tooltip-wrap:hover .thinking-tooltip {
   opacity: 1;
 }
@@ -166,4 +249,128 @@
   align-items: center;
   gap: 16px;
   flex-shrink: 0;
+}
+
+/* ── 二级 Tab 切换 ── */
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.settings-tab {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1px;
+}
+
+.settings-tab:hover {
+  color: var(--text-secondary);
+}
+
+.settings-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── 关于页 ── */
+.about-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.about-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+
+.about-product-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.about-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 4px 0;
+}
+
+.about-privacy {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.about-info-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.about-info-row:last-child {
+  border-bottom: none;
+}
+
+.about-label {
+  width: 70px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.about-value {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.about-copyable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.about-link {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.about-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.about-copy-btn {
+  padding: 2px 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.about-copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
