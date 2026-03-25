@@ -559,6 +559,7 @@ export default function ModelSettings() {
 
         {activeTab === 'about' && (
           <div className="about-section">
+            {/* 产品描述 */}
             <div className="about-card">
               <div className="about-product-name">智面 · AI Interview Sim</div>
               <p className="about-desc">
@@ -569,27 +570,12 @@ export default function ModelSettings() {
               </p>
             </div>
 
+            {/* 联系作者 */}
             <div className="about-card">
-              <div className="about-info-row">
-                <span className="about-label">版本</span>
-                <span className="about-value">V{__APP_VERSION__}</span>
-              </div>
+              <div className="about-card-title">联系作者</div>
               <div className="about-info-row">
                 <span className="about-label">作者</span>
                 <span className="about-value">birdy</span>
-              </div>
-              <div className="about-info-row">
-                <span className="about-label">GitHub</span>
-                <span className="about-value">
-                  <a
-                    href="https://github.com/1935417243/GrillMind"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="about-link"
-                  >
-                    github.com/1935417243/GrillMind
-                  </a>
-                </span>
               </div>
               <div className="about-info-row">
                 <span className="about-label">微信</span>
@@ -608,6 +594,44 @@ export default function ModelSettings() {
                     {copyStatus.qq ? '已复制 ✓' : '复制'}
                   </button>
                 </span>
+              </div>
+              <div className="about-info-row" style={{ borderBottom: 'none' }}>
+                <span className="about-label">版本</span>
+                <span className="about-value">V{__APP_VERSION__}</span>
+              </div>
+            </div>
+
+            {/* GitHub 突出展示 */}
+            <a
+              href="https://github.com/1935417243/GrillMind"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="about-github-banner"
+            >
+              <svg className="about-github-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+              <span className="about-github-text">github.com/1935417243/GrillMind</span>
+              <span className="about-github-arrow">→</span>
+            </a>
+
+            {/* 问题反馈 */}
+            <div className="about-card about-feedback">
+              <div className="about-card-title">遇到问题？</div>
+              <p className="about-desc">
+                如果你在使用中遇到 bug、有功能建议，欢迎通过以下方式联系我。
+              </p>
+              <div className="about-feedback-actions">
+                <button className="about-feedback-btn" onClick={() => handleCopy('wechat_fb', 'gg19354')}>
+                  <span className="about-feedback-btn-label">微信</span>
+                  <span className="about-feedback-btn-value">gg19354</span>
+                  <span className="about-feedback-btn-hint">{copyStatus.wechat_fb ? '已复制 ✓' : '点击复制'}</span>
+                </button>
+                <button className="about-feedback-btn" onClick={() => handleCopy('qq_fb', '1935417243')}>
+                  <span className="about-feedback-btn-label">QQ</span>
+                  <span className="about-feedback-btn-value">1935417243</span>
+                  <span className="about-feedback-btn-hint">{copyStatus.qq_fb ? '已复制 ✓' : '点击复制'}</span>
+                </button>
               </div>
             </div>
           </div>
