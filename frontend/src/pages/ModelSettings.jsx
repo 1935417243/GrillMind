@@ -232,6 +232,12 @@ export default function ModelSettings() {
     );
   };
 
+  // 供应商 API Key 申请链接配置
+  const PROVIDER_API_KEY_URLS = {
+    deepseek: 'https://platform.deepseek.com/api_keys',
+    bailian: 'https://bailian.console.aliyun.com/',
+  };
+
   const renderProviderCard = (name, label) => (
     <div className="provider-card" key={name}>
       <div className="provider-header">
@@ -249,7 +255,26 @@ export default function ModelSettings() {
       </div>
       <div className="form-row">
         <div className="form-item">
-          <div className="form-label">API KEY</div>
+          <div className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>API KEY</span>
+            {PROVIDER_API_KEY_URLS[name] && (
+              <a
+                href={PROVIDER_API_KEY_URLS[name]}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: '12px',
+                  color: '#6b9b6b',
+                  textDecoration: 'none',
+                  fontWeight: 'normal',
+                }}
+                onMouseEnter={e => e.target.style.textDecoration = 'underline'}
+                onMouseLeave={e => e.target.style.textDecoration = 'none'}
+              >
+                → 没有 Key？点击申请
+              </a>
+            )}
+          </div>
           <input
             className="form-input"
             type="password"
