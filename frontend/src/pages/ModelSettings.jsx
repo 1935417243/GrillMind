@@ -572,7 +572,7 @@ export default function ModelSettings() {
             <div className="about-card">
               <div className="about-info-row">
                 <span className="about-label">版本</span>
-                <span className="about-value">V0.1.1</span>
+                <span className="about-value">V{__APP_VERSION__}</span>
               </div>
               <div className="about-info-row">
                 <span className="about-label">作者</span>
