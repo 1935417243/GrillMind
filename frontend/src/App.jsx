@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './store/AppContext';
 import { ToastProvider } from './components/Toast';
+import ErrorBoundary from './components/ErrorBoundary';
 import Sidebar from './components/Sidebar';
 import StartInterview from './pages/StartInterview';
 import ResumeManager from './pages/ResumeManager';
@@ -18,15 +19,17 @@ export default function App() {
       <ToastProvider>
         <AppProvider>
           <Sidebar />
-          <Routes>
-            <Route path="/" element={<StartInterview />} />
-            <Route path="/resumes" element={<ResumeManager />} />
-            <Route path="/interview/:id" element={<InterviewRoom />} />
-            <Route path="/report/:sessionId" element={<InterviewReport />} />
-            <Route path="/records" element={<InterviewRecords />} />
-            <Route path="/settings" element={<ModelSettings />} />
-            <Route path="/jobs" element={<JobManager />} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<StartInterview />} />
+              <Route path="/resumes" element={<ResumeManager />} />
+              <Route path="/interview/:id" element={<InterviewRoom />} />
+              <Route path="/report/:sessionId" element={<InterviewReport />} />
+              <Route path="/records" element={<InterviewRecords />} />
+              <Route path="/settings" element={<ModelSettings />} />
+              <Route path="/jobs" element={<JobManager />} />
+            </Routes>
+          </ErrorBoundary>
         </AppProvider>
       </ToastProvider>
     </BrowserRouter>

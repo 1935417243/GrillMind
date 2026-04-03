@@ -4,6 +4,23 @@ import { db } from '../db/index.js';
 import { generateReportAsync } from '../services/reportGenerator.js';
 
 /**
+ * 安全解析 JSON 字符串，解析失败时返回默认值
+ * @param {string|null} str - 待解析的 JSON 字符串
+ * @param {*} fallback - 解析失败时的默认值
+ * @returns {*} 解析结果或默认值
+ */
+function safeJsonParse(str, fallback) {
+  if (!str) return fallback;
+  try {
+    const parsed = JSON.parse(str);
+    return parsed ?? fallback;
+  } catch {
+    console.warn('报告 JSON 字段解析失败:', str.slice(0, 100));
+    return fallback;
+  }
+}
+
+/**
  * 注册报告相关路由
  * @param {import('fastify').FastifyInstance} fastify
  */
@@ -29,9 +46,9 @@ export default async function reportRoutes(fastify) {
         sessionId: report.session_id,
         overallScore: report.overall_score,
         summary: report.summary,
-        qaBreakdown: report.qa_breakdown ? JSON.parse(report.qa_breakdown) : [],
-        riskPoints: report.risk_points ? JSON.parse(report.risk_points) : [],
-        suggestions: report.suggestions ? JSON.parse(report.suggestions) : null,
+        qaBreakdown: safeJsonParse(report.qa_breakdown, []),
+        riskPoints: safeJsonParse(report.risk_points, []),
+        suggestions: safeJsonParse(report.suggestions, null),
         status: report.status,
         createdAt: report.created_at,
       },

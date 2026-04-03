@@ -114,24 +114,24 @@ export default function InterviewReport() {
 
         {/* 逐题拆解 */}
         <div className="card-label" style={{marginBottom:'8px'}}>逐题拆解</div>
-        {report.qaBreakdown?.map((qa, i) => (
+        {Array.isArray(report.qaBreakdown) && report.qaBreakdown.map((qa, i) => (
           <div key={i} className="qa-item">
             <div className="qa-question">
               <span className="qa-num">Q{i + 1}</span>
               <span>{qa.question}</span>
             </div>
             <div className="qa-answer-summary">{qa.answerSummary}</div>
-            {qa.issues?.map((issue, j) => (
+            {Array.isArray(qa.issues) && qa.issues.map((issue, j) => (
               <div key={j} className="qa-issue">⚠ {issue}</div>
             ))}
-            {qa.suggestions?.map((sug, j) => (
+            {Array.isArray(qa.suggestions) && qa.suggestions.map((sug, j) => (
               <div key={j} className="qa-suggest">💡 {sug}</div>
             ))}
           </div>
         ))}
 
         {/* 风险点 */}
-        {report.riskPoints?.length > 0 && (
+        {Array.isArray(report.riskPoints) && report.riskPoints.length > 0 && (
           <>
             <div className="divider"></div>
             <div className="card-label" style={{marginBottom:'8px'}}>风险点</div>
@@ -154,7 +154,7 @@ export default function InterviewReport() {
             <div className="card-label" style={{marginBottom:'8px'}}>改进建议</div>
             <div className="card">
               <div style={{fontSize:'13px',color:'var(--text-secondary)',lineHeight:'1.9'}}>
-                {report.suggestions.nextPractice?.map((item, i) => (
+                {Array.isArray(report.suggestions?.nextPractice) && report.suggestions.nextPractice.map((item, i) => (
                   <div key={i}>① {item}</div>
                 ))}
                 {report.suggestions.selfIntroImprovement && (

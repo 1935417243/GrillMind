@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { initDB } from './db/index.js';
 
@@ -59,6 +60,23 @@ await fastify.register(interviewRoutes);
 await fastify.register(reportRoutes);
 await fastify.register(jobPositionRoutes);
 await fastify.register(voiceRoute);
+
+// SPA 路由回退：非 API 请求且非静态文件，返回 index.html
+const indexHtml = path.join(publicDir, 'index.html');
+fastify.setNotFoundHandler((req, reply) => {
+  // API 路由返回标准 JSON 404
+  if (req.url.startsWith('/api/')) {
+    return reply.code(404).send({
+      success: false,
+      error: { code: 'NOT_FOUND', message: '接口不存在' },
+    });
+  }
+  // SPA 回退：返回 index.html（仅在生产模式 public 目录存在时）
+  if (fs.existsSync(indexHtml)) {
+    return reply.type('text/html').sendFile('index.html');
+  }
+  return reply.code(404).send('Not Found');
+});
 
 // 启动服务
 const PORT = process.env.PORT || 3001;
