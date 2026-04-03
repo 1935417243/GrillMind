@@ -5,19 +5,32 @@
  * 从对话消息中提取 Q&A 对
  * 过滤 opening 和 closing 阶段
  * @param {Array} messages - 面试消息列表
- * @returns {Array} - [{question, answer}]
+ * @returns {Array} - [{question, answer, thinkingSeconds}]
  */
 export function extractQAPairs(messages) {
   const pairs = [];
   let lastQ = null;
+  let lastQTimestamp = null;
   for (const msg of messages) {
     if (msg.role === 'assistant' &&
         msg.stage !== 'opening' &&
         msg.stage !== 'closing') {
       lastQ = msg.content;
+      lastQTimestamp = msg.timestamp;
     } else if (msg.role === 'user' && lastQ) {
-      pairs.push({ question: lastQ, answer: msg.content });
+      // 计算思考时长(秒)：用户开始回答时间 - 面试官提问完成时间
+      let thinkingSeconds = null;
+      const userStart = msg.startedAt || msg.timestamp;
+      if (userStart && lastQTimestamp) {
+        const diff = (new Date(userStart).getTime() - new Date(lastQTimestamp).getTime()) / 1000;
+        // 合理范围：0~600 秒（10 分钟）
+        if (diff >= 0 && diff <= 600) {
+          thinkingSeconds = Math.round(diff);
+        }
+      }
+      pairs.push({ question: lastQ, answer: msg.content, thinkingSeconds });
       lastQ = null;
+      lastQTimestamp = null;
     }
   }
   return pairs;

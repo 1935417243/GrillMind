@@ -3,7 +3,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/index.js';
 import { chatCompletionWithRetry, getTaskModel, getTaskThinking, buildThinkingExtraBody } from '../ai/client.js';
-import { buildReportPrompt } from '../ai/prompts/reportGen.js';
+import { buildReportPrompt, extractQAPairs } from '../ai/prompts/reportGen.js';
 import { safeParseAIJson } from '../utils/fileUtils.js';
 import { nowCSTShort } from '../utils/time.js';
 
@@ -42,6 +42,9 @@ export async function generateReportAsync(sessionId) {
     const jobPos = db.prepare('SELECT name, category FROM job_positions WHERE id = ?').get(session.job_type);
     const jobName = jobPos ? jobPos.name : (session.job_type || '未知岗位');
     const category = jobPos ? (jobPos.category || 'non-tech') : 'non-tech';
+
+    // 提取 QA 对（包含思考时长计算）
+    const qaList = extractQAPairs(messages);
 
     // 构建 prompt 并调用 AI（非流式）
     const reportModel = getTaskModel('report');
@@ -83,6 +86,15 @@ export async function generateReportAsync(sessionId) {
           }
         );
       }
+    }
+
+    // 将思考时长合并到 AI 返回的 qaBreakdown 中
+    if (Array.isArray(report.qaBreakdown) && qaList.length > 0) {
+      report.qaBreakdown.forEach((qa, i) => {
+        if (i < qaList.length && qaList[i].thinkingSeconds != null) {
+          qa.thinkingSeconds = qaList[i].thinkingSeconds;
+        }
+      });
     }
 
     // 写入数据库

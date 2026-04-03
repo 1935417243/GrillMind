@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db/index.js';
 import { InterviewEngine } from './interviewEngine.js';
 import { chatCompletion, getTaskModel, buildThinkingExtraBody } from '../ai/client.js';
+import { nowCST } from '../utils/time.js';
 import { decrypt } from '../utils/crypto.js';
 
 // 百炼 WebSocket 服务地址
@@ -64,6 +65,7 @@ export class VoiceSession {
     this.pendingSentences = [];    // 等待处理的完整句子
     this.destroyed = false;
     this._started = false;         // 防止重复启动
+    this.firstAsrTime = null;      // 首次 ASR 识别到用户语音的时间（思考时长计算用）
   }
 
   /**
@@ -187,6 +189,10 @@ export class VoiceSession {
         // 句子结束 → 加入待处理队列
         if (sentence.sentence_end && sentence.text?.trim()) {
           console.log(`📝 ASR 完整句子: "${sentence.text}"`);
+          // 记录首次 ASR 识别到用户语音的时间（用于思考时长计算）
+          if (!this.firstAsrTime) {
+            this.firstAsrTime = nowCST();
+          }
           this.pendingSentences.push(sentence.text);
           this.processNext();
         }
@@ -222,7 +228,9 @@ export class VoiceSession {
       // 1. 先追加用户消息（推进面试阶段），再构建 AI 消息
       //    与文字模式保持一致的调用顺序
       const stageBefore = this.engine.stage;
-      this.engine.appendMessage('user', userText);
+      const userStartedAt = this.firstAsrTime || nowCST();
+      this.firstAsrTime = null; // 重置，下一轮重新记录
+      this.engine.appendMessage('user', userText, { startedAt: userStartedAt });
       console.log(`📊 阶段推进: ${stageBefore} → ${this.engine.stage} (stageTurns=${this.engine.stageTurns})`);
       const aiMessages = this.engine.buildAIMessages(userText);
 
@@ -276,6 +284,15 @@ export class VoiceSession {
       // 3. TTS 合成语音
       console.log(`🔊 开始 TTS 合成...`);
       await this.synthesizeAndPlay(fullAiContent);
+
+      // 4. TTS 播放完成后，更新 assistant 消息的 timestamp 为当前时间
+      //    这样思考时间 = 用户首次 ASR 识别时间 - 面试官语音播报完成时间
+      //    而不是包含 LLM 生成 + TTS 合成播放的时间
+      const lastMsg = this.engine.messages[this.engine.messages.length - 1];
+      if (lastMsg && lastMsg.role === 'assistant') {
+        lastMsg.timestamp = nowCST();
+        this.engine.persist();
+      }
 
       // 通知前端 AI 回复结束
       this.sendToClient({

@@ -119,6 +119,9 @@ export default function InterviewReport() {
             <div className="qa-question">
               <span className="qa-num">Q{i + 1}</span>
               <span>{qa.question}</span>
+              {qa.thinkingSeconds != null && (
+                <span className="qa-thinking-time">⏱ {qa.thinkingSeconds}s</span>
+              )}
             </div>
             <div className="qa-answer-summary">{qa.answerSummary}</div>
             {Array.isArray(qa.issues) && qa.issues.map((issue, j) => (

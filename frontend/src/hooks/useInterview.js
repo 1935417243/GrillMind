@@ -1,5 +1,5 @@
 // 面试会话核心 Hook
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 /**
  * 面试核心 Hook - 管理消息列表和流式通信
@@ -12,7 +12,10 @@ export function useInterview(sessionId) {
   const [streamingContent, setStreamingContent] = useState('');
   const [isClosing,        setIsClosing]        = useState(false);
 
-  const sendMessage = useCallback(async (content) => {
+  // 思考计时：记录 AI 回复完成的时间点，供外部计算思考时长
+  const thinkingStartRef = useRef(null);
+
+  const sendMessage = useCallback(async (content, startedAt) => {
     if (isStreaming || isClosing || !sessionId) return;
 
     // 追加用户消息
@@ -24,7 +27,7 @@ export function useInterview(sessionId) {
       const response = await fetch(`/api/v1/sessions/${sessionId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, startedAt }),
       });
 
       const reader  = response.body.getReader();
@@ -51,6 +54,8 @@ export function useInterview(sessionId) {
                 { role: 'assistant', content: fullContent, timestamp: Date.now() }
               ]);
               setStreamingContent('');
+              // AI 回复完成，记录思考计时起点
+              thinkingStartRef.current = new Date().toISOString();
               if (data.stage) {
                 setStage(data.stage);
                 // 进入 closing 阶段后标记，阻止继续发消息
@@ -77,7 +82,9 @@ export function useInterview(sessionId) {
       setStage(currentStage);
       if (currentStage === 'closing') setIsClosing(true);
     }
+    // 恢复会话时，设置思考计时起点为当前时间
+    thinkingStartRef.current = new Date().toISOString();
   }, []);
 
-  return { messages, stage, setStage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages };
+  return { messages, stage, setStage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages, thinkingStartRef };
 }

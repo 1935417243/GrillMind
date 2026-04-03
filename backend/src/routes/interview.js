@@ -178,7 +178,7 @@ export default async function interviewRoutes(fastify) {
 
   // 发送消息（SSE 流式响应）
   fastify.post('/api/v1/sessions/:id/chat', async (req, reply) => {
-    const { content } = req.body;
+    const { content, startedAt } = req.body;
     const session = db.prepare(
       'SELECT * FROM interview_sessions WHERE id = ?'
     ).get(req.params.id);
@@ -193,8 +193,8 @@ export default async function interviewRoutes(fastify) {
     const resume = db.prepare('SELECT * FROM resumes WHERE id = ?').get(session.resume_id);
     const engine = new InterviewEngine(session, resume);
 
-    // 追加用户消息
-    engine.appendMessage('user', content);
+    // 追加用户消息（携带 startedAt 记录用户开始回答的时间）
+    engine.appendMessage('user', content, { startedAt });
 
     // 构建 AI 消息
     const aiMessages     = engine.buildAIMessages(content);

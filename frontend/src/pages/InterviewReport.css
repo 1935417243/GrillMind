@@ -86,3 +86,17 @@
 }
 .risk-item:last-child { border-bottom: none; }
 .risk-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); margin-top: 6px; flex-shrink: 0; }
+
+/* 思考时长标签 */
+.qa-thinking-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}

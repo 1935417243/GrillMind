@@ -144,14 +144,20 @@ export class InterviewEngine {
    * 追加消息，用户消息时自动推进阶段
    * @param {'assistant' | 'user'} role
    * @param {string} content
+   * @param {object} [extraFields] - 额外字段，如 { startedAt } 记录用户开始回答的时间
    */
-  appendMessage(role, content) {
-    this.messages.push({
+  appendMessage(role, content, extraFields = {}) {
+    const msg = {
       role,
       content,
       timestamp: nowCST(),
       stage: this.stage,
-    });
+    };
+    // 将额外字段（如 startedAt）合并到消息对象
+    if (role === 'user' && extraFields.startedAt) {
+      msg.startedAt = extraFields.startedAt;
+    }
+    this.messages.push(msg);
     if (role === 'user') {
       this.stageTurns++;
       if (this.shouldAdvanceStage()) this.advanceStage();

@@ -5,6 +5,8 @@ import { useInterview } from '../hooks/useInterview';
 import { sessionApi } from '../api/client';
 import ChatBubble from '../components/ChatBubble';
 import VoiceCall from '../components/VoiceCall';
+import ConfirmModal from '../components/ConfirmModal';
+import { useToast } from '../components/Toast';
 import './InterviewRoom.css';
 
 const STAGE_LABELS = {
@@ -27,8 +29,10 @@ export default function InterviewRoom() {
   const [sessionInfo, setSessionInfo] = useState(null);
   const [ending, setEnding] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const toast = useToast();
 
-  const { messages, stage, setStage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages } = useInterview(id);
+  const { messages, stage, setStage, isStreaming, streamingContent, isClosing, sendMessage, loadMessages, thinkingStartRef } = useInterview(id);
 
   // 加载会话数据
   useEffect(() => {
@@ -64,8 +68,14 @@ export default function InterviewRoom() {
   const handleSend = () => {
     const text = inputText.trim();
     if (!text || isStreaming || isClosing) return;
-    sendMessage(text);
+    // 以发送时间作为用户开始回答的时间
+    sendMessage(text, new Date().toISOString());
     setInputText('');
+  };
+
+  // 输入变化处理
+  const handleInputChange = (e) => {
+    setInputText(e.target.value);
   };
 
   const handleKeyDown = (e) => {
@@ -77,13 +87,17 @@ export default function InterviewRoom() {
 
   const handleEnd = async () => {
     if (ending) return;
-    if (!confirm('确定要结束面试吗？结束后将自动生成报告。')) return;
+    setShowConfirm(true);
+  };
+
+  const confirmEnd = async () => {
+    setShowConfirm(false);
     setEnding(true);
     try {
       await sessionApi.end(id);
       navigate(`/report/${id}`);
     } catch (err) {
-      alert('结束面试失败：' + err.message);
+      toast.error('结束面试失败：' + err.message);
       setEnding(false);
     }
   };
@@ -174,7 +188,7 @@ export default function InterviewRoom() {
                     placeholder="输入你的回答…"
                     rows="1"
                     value={inputText}
-                    onChange={e => setInputText(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     disabled={isStreaming}
                   />
@@ -227,7 +241,7 @@ export default function InterviewRoom() {
 
           {!isClosing && (
             <button
-              className="btn btn-ghost btn-sm end-btn"
+               className="btn btn-ghost btn-sm end-btn"
               style={{ color: 'var(--warn)', borderColor: 'var(--warn)', marginTop: '8px' }}
               onClick={handleEnd}
               disabled={ending}
@@ -237,6 +251,17 @@ export default function InterviewRoom() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showConfirm}
+        title="结束面试"
+        message="确定要结束面试吗？结束后将自动生成报告。"
+        onConfirm={confirmEnd}
+        onCancel={() => setShowConfirm(false)}
+        type="danger"
+        confirmText="结束"
+        cancelText="继续面试"
+      />
     </div>
   );
 }
