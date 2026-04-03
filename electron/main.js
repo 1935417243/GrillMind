@@ -149,6 +149,10 @@ function createWindow() {
     if (permission === 'media') {
       return true;
     }
+    // 允许剪贴板权限（复制/粘贴）
+    if (permission === 'clipboard-read' || permission === 'clipboard-sanitized-write') {
+      return true;
+    }
     return false;
   });
 
@@ -156,6 +160,11 @@ function createWindow() {
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     // 允许媒体设备（麦克风）权限
     if (permission === 'media') {
+      callback(true);
+      return;
+    }
+    // 允许剪贴板权限
+    if (permission === 'clipboard-read' || permission === 'clipboard-sanitized-write') {
       callback(true);
       return;
     }
@@ -206,8 +215,34 @@ app.whenReady().then(async () => {
     writeLog('主进程', '正在启动后端服务...');
     await startBackend();
     writeLog('主进程', '后端已启动，创建窗口...');
-    // 隐藏默认菜单栏（去掉 Windows 上的 File/Edit/View 等菜单）
-    Menu.setApplicationMenu(null);
+    // 自定义菜单：保留基本编辑操作快捷键（Cmd+C/V/X/A/Z），隐藏其他菜单
+    const menu = Menu.buildFromTemplate([
+      {
+        label: app.name,
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' },
+        ],
+      },
+      {
+        label: '编辑',
+        submenu: [
+          { role: 'undo' },
+          { role: 'redo' },
+          { type: 'separator' },
+          { role: 'cut' },
+          { role: 'copy' },
+          { role: 'paste' },
+          { role: 'selectAll' },
+        ],
+      },
+    ]);
+    Menu.setApplicationMenu(menu);
     createWindow();
   } catch (err) {
     writeLog('错误', `启动失败: ${err.message}`);

@@ -16,12 +16,39 @@ export default function ModelSettings() {
   // 复制按钮反馈状态
   const [copyStatus, setCopyStatus] = useState({});
 
-  // 复制到剪贴板
+  // 复制到剪贴板（兼容 Electron 打包环境）
   const handleCopy = useCallback((key, text) => {
-    navigator.clipboard.writeText(text).then(() => {
+    const onSuccess = () => {
       setCopyStatus(prev => ({ ...prev, [key]: true }));
       setTimeout(() => setCopyStatus(prev => ({ ...prev, [key]: false })), 1500);
-    });
+    };
+
+    // 优先使用 Clipboard API
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+        // Clipboard API 被拒绝时，回退到传统方案
+        fallbackCopy(text) && onSuccess();
+      });
+    } else {
+      fallbackCopy(text) && onSuccess();
+    }
+  }, []);
+
+  // 传统复制方案（兼容 Electron 中 Clipboard API 不可用的场景）
+  const fallbackCopy = useCallback((text) => {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return true;
+    } catch {
+      return false;
+    }
   }, []);
 
   // 供应商配置
