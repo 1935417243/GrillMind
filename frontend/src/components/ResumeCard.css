@@ -32,18 +32,17 @@
 
 /* 解析中状态标签 */
 .tag-processing {
-  background: #eef4ff;
-  color: #4a6fa5;
-  border: 1px solid #c8d8ef;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
 }
 
-/* 解析中旋转动画 */
 .parse-spinner {
   display: inline-block;
   width: 10px;
   height: 10px;
-  border: 1.5px solid #c8d8ef;
-  border-top-color: #4a6fa5;
+  border: 1.5px solid var(--border-strong);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: parseSpin 0.8s linear infinite;
   margin-right: 4px;

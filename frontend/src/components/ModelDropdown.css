@@ -39,7 +39,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
   z-index: 100;
   overflow: hidden;
   max-height: 320px;

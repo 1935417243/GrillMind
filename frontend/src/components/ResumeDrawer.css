@@ -5,7 +5,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(26, 25, 23, 0.25);
+  background: var(--overlay-bg);
   z-index: 200;
   animation: drawerFadeIn 0.2s ease;
 }
@@ -24,7 +24,7 @@
   flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-lg);
 }
 .drawer.open { transform: translateX(0); }
 

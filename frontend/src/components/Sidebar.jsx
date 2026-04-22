@@ -1,5 +1,6 @@
 // 侧边栏导航组件
 import { NavLink } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
 import './Sidebar.css';
 
 export default function Sidebar() {
@@ -51,6 +52,10 @@ export default function Sidebar() {
           设置
         </NavLink>
       </nav>
+
+      <div className="sidebar-footer">
+        <ThemeToggle />
+      </div>
     </aside>
   );
 }

@@ -25,7 +25,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(26, 25, 23, 0.35);
+  background: var(--overlay-bg);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -46,7 +46,7 @@
   padding: 24px 28px;
   width: 360px;
   max-width: 90vw;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-lg);
   animation: dialogIn 0.2s ease-out;
 }
 
@@ -98,6 +98,7 @@
   border-color: var(--warn);
 }
 .btn-danger:hover {
-  background: #a5471f;
-  border-color: #a5471f;
+  background: var(--warn-light);
+  color: var(--warn);
+  border-color: var(--warn);
 }
