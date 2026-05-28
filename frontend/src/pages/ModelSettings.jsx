@@ -192,8 +192,10 @@ export default function ModelSettings() {
 
   // 模型级规则：按 match 函数匹配模型名，优先级按数组顺序（先匹配先命中）
   const MODEL_THINKING_RULES = [
-    { match: m => m === 'deepseek-reasoner', state: { visible: true, enabled: false, forceOn: true, tooltip: '当前模型仅支持深度思考' } },
-    { match: m => m === 'deepseek-chat', state: { visible: true, enabled: false, tooltip: '此模型不支持开启深度思考' } },
+    { match: m => m === 'deepseek-v4-pro', state: { visible: true, enabled: true, tooltip: '' } },
+    { match: m => m === 'deepseek-v4-flash', state: { visible: true, enabled: false, tooltip: 'DeepSeek-V4-Flash 不支持开启深度思考' } },
+    { match: m => m === 'deepseek-reasoner', state: { visible: true, enabled: false, forceOn: true, tooltip: '旧模型名称即将下架，建议改用 deepseek-v4-pro' } },
+    { match: m => m === 'deepseek-chat', state: { visible: true, enabled: false, tooltip: '旧模型名称即将下架，建议改用 deepseek-v4-flash 或 deepseek-v4-pro' } },
     // 扩展示例：{ match: m => m.startsWith('qwen3-'), state: { visible: true, enabled: true, tooltip: '' } },
   ];
 
@@ -668,4 +670,3 @@ export default function ModelSettings() {
     </div>
   );
 }
-

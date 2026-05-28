@@ -7,6 +7,7 @@ import { InterviewEngine } from './interviewEngine.js';
 import { chatCompletion, getTaskModel, buildThinkingExtraBody } from '../ai/client.js';
 import { nowCST } from '../utils/time.js';
 import { decrypt } from '../utils/crypto.js';
+import { createInterviewOutputStreamSanitizer, sanitizeInterviewOutputText } from '../utils/interviewOutput.js';
 
 // 百炼 WebSocket 服务地址
 const DASHSCOPE_WS_URL = 'wss://dashscope.aliyuncs.com/api-ws/v1/inference/';
@@ -237,7 +238,7 @@ export class VoiceSession {
       // 语音模式：注入简短回复提示
       aiMessages.push({
         role: 'system',
-        content: '【语音模式约束】1.每次回复控制在80字以内；开场白、过渡句控制在30字以内 2.语气口语化、自然，像真人面试对话 3.一次只问一个问题 4.不要用列表、编号、括号等书面格式 5.可以适当用"嗯""好的"等口语词过渡，但只在确认或衔接时使用，不连续重复 6.不要重复用户刚说过的话来凑字数',
+        content: '【语音模式约束】1.每次回复控制在80字以内；开场白、过渡句控制在30字以内 2.语气自然、专业，像真人面试对话 3.一次只问一个问题 4.不要用列表、编号、括号等书面格式 5.不要用"好""好的""嗯"等口头垫词开头，不连续重复过渡词 6.不要输出动作、心理活动或语气说明 7.不要重复用户刚说过的话来凑字数',
       });
 
       const interviewModel = getTaskModel('interview');
@@ -255,7 +256,9 @@ export class VoiceSession {
         extraBody,
       });
 
-      let fullAiContent = '';
+      const sanitizer = createInterviewOutputStreamSanitizer();
+      let rawAiContent = '';
+      let visibleAiContent = '';
 
       for await (const chunk of stream) {
         const delta = chunk.choices?.[0]?.delta;
@@ -263,11 +266,22 @@ export class VoiceSession {
         // 跳过 reasoning_content（深度思考内容）
         const token = delta.content || '';
         if (token) {
-          fullAiContent += token;
+          rawAiContent += token;
+          const cleanToken = sanitizer.push(token);
+          if (!cleanToken) continue;
+          visibleAiContent += cleanToken;
           // 发送文字给前端（字幕用）
-          this.sendToClient({ type: 'ai_text', text: fullAiContent });
+          this.sendToClient({ type: 'ai_text', text: visibleAiContent });
         }
       }
+
+      const tail = sanitizer.flush();
+      if (tail) {
+        visibleAiContent += tail;
+        this.sendToClient({ type: 'ai_text', text: visibleAiContent });
+      }
+
+      const fullAiContent = sanitizeInterviewOutputText(visibleAiContent || rawAiContent);
 
       console.log(`🤖 LLM 回复完成 (${fullAiContent.length} 字)`);
 
@@ -275,6 +289,10 @@ export class VoiceSession {
         console.warn('⚠️ LLM 返回空内容，跳过 TTS');
         this.sendToClient({ type: 'ai_end' });
         return;
+      }
+
+      if (fullAiContent !== visibleAiContent) {
+        this.sendToClient({ type: 'ai_text', text: fullAiContent });
       }
 
       // 2. 追加 AI 回复并持久化

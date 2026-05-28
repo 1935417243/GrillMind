@@ -67,6 +67,7 @@ export async function parseResumeAsync(resumeId, filePath, originalName) {
     const aiResult = await chatCompletionWithRetry({
       providerModel: parseModel,
       messages,
+      jsonMode: true,
       extraBody: buildThinkingExtraBody(parseModel, getTaskThinking('parse')),
     });
 

@@ -5,6 +5,7 @@ import { InterviewEngine } from '../services/interviewEngine.js';
 import { chatCompletion, getTaskModel, buildThinkingExtraBody } from '../ai/client.js';
 import { generateReportAsync } from '../services/reportGenerator.js';
 import { nowCST, nowCSTShort } from '../utils/time.js';
+import { createInterviewOutputStreamSanitizer, sanitizeInterviewOutputText } from '../utils/interviewOutput.js';
 
 /**
  * 注册面试会话相关路由
@@ -218,21 +219,35 @@ export default async function interviewRoutes(fastify) {
         extraBody,
       });
 
+      const sanitizer = createInterviewOutputStreamSanitizer();
+      let rawContent = '';
       let fullContent = '';
 
       for await (const chunk of stream) {
         const token = chunk.choices[0]?.delta?.content || '';
         if (token) {
-          fullContent += token;
-          reply.raw.write(`data: ${JSON.stringify({ token })}\n\n`);
+          rawContent += token;
+          const cleanToken = sanitizer.push(token);
+          if (cleanToken) {
+            fullContent += cleanToken;
+            reply.raw.write(`data: ${JSON.stringify({ token: cleanToken })}\n\n`);
+          }
         }
       }
+
+      const tail = sanitizer.flush();
+      if (tail) {
+        fullContent += tail;
+        reply.raw.write(`data: ${JSON.stringify({ token: tail })}\n\n`);
+      }
+
+      fullContent = sanitizeInterviewOutputText(fullContent || rawContent);
 
       // 追加 AI 回复并持久化
       engine.appendMessage('assistant', fullContent);
       engine.persist();
 
-      reply.raw.write(`data: ${JSON.stringify({ done: true, stage: engine.stage })}\n\n`);
+      reply.raw.write(`data: ${JSON.stringify({ done: true, stage: engine.stage, content: fullContent })}\n\n`);
     } catch (err) {
       console.error('面试对话 AI 调用失败:', err);
       reply.raw.write(`data: ${JSON.stringify({ error: true, message: err.message })}\n\n`);

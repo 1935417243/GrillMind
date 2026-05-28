@@ -49,9 +49,10 @@ export function useInterview(sessionId) {
               setStreamingContent(fullContent);
             }
             if (data.done) {
+              const assistantContent = data.content || fullContent;
               setMessages(prev => [
                 ...prev,
-                { role: 'assistant', content: fullContent, timestamp: Date.now() }
+                { role: 'assistant', content: assistantContent, timestamp: Date.now() }
               ]);
               setStreamingContent('');
               // AI 回复完成，记录思考计时起点

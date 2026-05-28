@@ -63,6 +63,7 @@ export async function generateReportAsync(sessionId) {
       const aiResult = await chatCompletionWithRetry({
         providerModel: reportModel,
         messages: promptMessages,
+        jsonMode: true,
         extraBody: buildThinkingExtraBody(reportModel, getTaskThinking('report')),
       });
 

@@ -3,6 +3,7 @@
 import { db } from '../db/index.js';
 import { buildInterviewSystemPrompt } from '../ai/prompts/interviewChat.js';
 import { nowCST } from '../utils/time.js';
+import { sanitizeInterviewOutputText } from '../utils/interviewOutput.js';
 
 /**
  * 根据面试深度生成阶段流转配置
@@ -135,7 +136,10 @@ export class InterviewEngine {
 
     return [
       { role: 'system', content: systemPrompt },
-      ...this.messages.map(m => ({ role: m.role, content: m.content })),
+      ...this.messages.map(m => ({
+        role: m.role,
+        content: m.role === 'assistant' ? sanitizeInterviewOutputText(m.content) : m.content,
+      })),
       { role: 'user', content: finalUserContent },
     ];
   }
@@ -149,7 +153,7 @@ export class InterviewEngine {
   appendMessage(role, content, extraFields = {}) {
     const msg = {
       role,
-      content,
+      content: role === 'assistant' ? sanitizeInterviewOutputText(content) : content,
       timestamp: nowCST(),
       stage: this.stage,
     };

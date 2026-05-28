@@ -5,7 +5,7 @@ import { decrypt } from '../utils/crypto.js';
 
 /**
  * 根据 'provider::modelName' 格式动态构造 OpenAI 兼容客户端
- * @param {string} providerModel - 格式如 'deepseek::deepseek-chat'
+ * @param {string} providerModel - 格式如 'deepseek::deepseek-v4-pro'
  * @returns {OpenAI} - OpenAI 客户端实例
  */
 export function getAIClient(providerModel) {
@@ -22,7 +22,7 @@ export function getAIClient(providerModel) {
   return new OpenAI({
     apiKey: decrypt(row.api_key_enc),
     baseURL: row.base_url,
-    timeout: 300 * 1000,  // 300秒超时（推理模型如 deepseek-reasoner 思考时间较长）
+    timeout: 300 * 1000,  // 300秒超时（推理模型如 deepseek-v4-pro 思考时间较长）
     maxRetries: 0,        // 由 chatCompletionWithRetry 统一管理重试
   });
 }
@@ -34,6 +34,41 @@ export function getAIClient(providerModel) {
  */
 export function getModelName(providerModel) {
   return providerModel.split('::')[1];
+}
+
+/**
+ * 获取 providerModel 对应的供应商配置
+ * @param {string} providerModel
+ * @returns {{ provider: string, baseUrl: string|null, isConnected: boolean }}
+ */
+export function getProviderConfig(providerModel) {
+  const [provider] = providerModel.split('::');
+  const row = db.prepare(
+    'SELECT base_url, is_connected FROM model_providers WHERE provider = ?'
+  ).get(provider);
+
+  return {
+    provider,
+    baseUrl: row?.base_url || null,
+    isConnected: !!row?.is_connected,
+  };
+}
+
+/**
+ * 判断是否为 DeepSeek 原生 API。阿里百炼里的 DeepSeek 不支持 DeepSeek JSON Output。
+ * @param {string} providerModel - 'provider::model'
+ * @returns {boolean}
+ */
+export function isNativeDeepSeekProvider(providerModel) {
+  const { provider, baseUrl, isConnected } = getProviderConfig(providerModel);
+  if (provider !== 'deepseek' || !isConnected || !baseUrl) return false;
+
+  try {
+    const host = new URL(baseUrl.trim()).hostname.toLowerCase();
+    return host === 'api.deepseek.com';
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -79,19 +114,47 @@ export function getTaskThinking(task) {
 
 /**
  * 根据供应商和深度思考开关构建 extraBody
- * - deepseek：不传额外参数（由模型自身决定）
+ * - deepseek-v4-pro：传 thinking 开关，关闭时显式禁用默认思考模式
+ * - deepseek-v4-flash：显式禁用 thinking
  * - bailian/qwen：传 enable_thinking
  * @param {string} providerModel - 'provider::model'
  * @param {boolean} enableThinking - 是否开启深度思考
  * @returns {object}
  */
 export function buildThinkingExtraBody(providerModel, enableThinking) {
-  const [provider] = providerModel.split('::');
+  const [provider, ...rest] = providerModel.split('::');
+  const modelName = rest.join('::').toLowerCase();
+
+  if (provider === 'deepseek' && modelName === 'deepseek-v4-pro') {
+    return {
+      thinking: { type: enableThinking ? 'enabled' : 'disabled' },
+      ...(enableThinking ? { reasoning_effort: 'high' } : {}),
+    };
+  }
+
+  if (provider === 'deepseek' && modelName === 'deepseek-v4-flash') {
+    return { thinking: { type: 'disabled' } };
+  }
+
   if (provider === 'bailian') {
     return { enable_thinking: !!enableThinking };
   }
-  // DeepSeek 和其他供应商不传额外参数
+
+  // DeepSeek 旧别名和其他供应商不传额外参数
   return {};
+}
+
+/**
+ * 构建 JSON Output 参数。仅 DeepSeek 原生 API 支持该参数。
+ * @param {string} providerModel - 'provider::model'
+ * @returns {object}
+ */
+export function buildJsonModeExtraBody(providerModel) {
+  if (!isNativeDeepSeekProvider(providerModel)) return {};
+
+  return {
+    response_format: { type: 'json_object' },
+  };
 }
 
 /**
@@ -100,14 +163,16 @@ export function buildThinkingExtraBody(providerModel, enableThinking) {
  * @param {string} options.providerModel - 'provider::model'
  * @param {Array} options.messages - 消息数组
  * @param {boolean} [options.stream=false] - 是否流式
+ * @param {boolean} [options.jsonMode=false] - 是否请求结构化 JSON 输出（仅 DeepSeek 原生 API 生效）
  * @param {object} [options.extraBody={}] - 透传给供应商的扩展参数（如百炼的 enable_thinking）
  * @returns {Promise}
  */
-export async function chatCompletion({ providerModel, messages, stream = false, extraBody = {} }) {
+export async function chatCompletion({ providerModel, messages, stream = false, jsonMode = false, extraBody = {} }) {
   const client = getAIClient(providerModel);
   const model  = getModelName(providerModel);
+  const jsonModeExtraBody = jsonMode && !stream ? buildJsonModeExtraBody(providerModel) : {};
 
-  return client.chat.completions.create({ model, messages, stream, ...extraBody });
+  return client.chat.completions.create({ model, messages, stream, ...jsonModeExtraBody, ...extraBody });
 }
 
 /**
@@ -122,7 +187,11 @@ export async function chatCompletionWithRetry(options, maxRetries = 2) {
   for (let i = 0; i <= maxRetries; i++) {
     try {
       const resp = await chatCompletion({ ...options, stream: false });
-      return resp.choices[0].message.content;
+      const content = resp.choices[0].message.content;
+      if (options.jsonMode && (!content || !content.trim())) {
+        throw new Error('AI returned empty JSON content');
+      }
+      return content;
     } catch (err) {
       lastError = err;
       console.warn(`AI 调用失败 (第${i + 1}次):`, err.message || err);

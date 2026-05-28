@@ -256,6 +256,7 @@ export default async function jobPositionRoutes(fastify) {
       const content = await chatCompletionWithRetry({
         providerModel,
         messages: [{ role: 'user', content: prompt }],
+        jsonMode: true,
         extraBody: buildThinkingExtraBody(providerModel, getTaskThinking('base')),
       });
 
