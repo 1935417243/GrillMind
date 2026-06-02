@@ -1,20 +1,14 @@
-<!--
-发布新版本前更新本文件；GitHub Actions 会把它作为 GitHub Release 说明。
--->
-
-## 本次更新
-
-### DeepSeek 优化
-
-- 适配 DeepSeek V4 模型：支持 `deepseek-v4-pro` 与 `deepseek-v4-flash` 的模型选择与任务绑定。
-- 优化面试官回复的语气词处理，减少“好”“好的”“嗯”等固定口头垫词开头，让文字和语音面试更自然、更直接。
-
-## 下载安装包
+## GrillMind Packages
 
 | 平台 | 文件 |
 |------|------|
 | macOS (Apple Silicon) | `GrillMind-*-arm64.dmg` |
 | Windows | `GrillMind-Setup-*.exe` |
+
+### 本次更新
+
+- 适配 DeepSeek V4 模型：支持 `deepseek-v4-pro` 与 `deepseek-v4-flash` 的模型选择与任务绑定。
+- 优化面试官回复的语气词处理，减少“好”“好的”“嗯”等固定口头垫词开头，让文字和语音面试更自然、更直接。
 
 ### 使用说明
 

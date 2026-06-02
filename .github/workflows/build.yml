@@ -72,6 +72,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 检出仓库，以便 action-gh-release 读取 release-notes.md
+      - name: Checkout
+        uses: actions/checkout@v4
+
       # 下载所有平台的构建产物
       - name: Download Mac artifacts
         uses: actions/download-artifact@v4
@@ -90,7 +94,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: GrillMind ${{ github.ref_name }}
-          body_path: RELEASE_NOTES.md
+          body_path: release-notes.md
           files: release-assets/*
           draft: false
           prerelease: false
