@@ -90,17 +90,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: GrillMind ${{ github.ref_name }}
-          body: |
-            ## 下载安装包
-
-            | 平台 | 文件 |
-            |------|------|
-            | macOS (Apple Silicon) | `GrillMind-*-arm64.dmg` |
-            | Windows | `GrillMind-Setup-*.exe` |
-
-            ### 安装说明
-            - **macOS**：双击 `.dmg`，拖到「应用程序」文件夹。首次打开如提示安全警告，请在「系统设置 → 隐私与安全性」中允许。
-            - **Windows**：双击 `.exe` 安装向导，一路下一步。首次打开如提示 SmartScreen 警告，点击「更多信息 → 仍要运行」。
+          body_path: RELEASE_NOTES.md
           files: release-assets/*
           draft: false
           prerelease: false
