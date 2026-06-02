@@ -10,9 +10,22 @@
 }
 
 .logo {
-  padding: 24px 20px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 18px 18px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 8px;
+}
+.logo-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.logo-text {
+  min-width: 0;
 }
 .logo-zh {
   font-family: 'Noto Serif SC', serif;

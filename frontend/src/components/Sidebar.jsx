@@ -7,8 +7,11 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="logo">
-        <div className="logo-zh">智面</div>
-        <div className="logo-sub">AI INTERVIEW SIM</div>
+        <img className="logo-mark" src="/logo-mark.svg" alt="" aria-hidden="true" />
+        <div className="logo-text">
+          <div className="logo-zh">智面</div>
+          <div className="logo-sub">AI INTERVIEW SIM</div>
+        </div>
       </div>
 
       <nav>
